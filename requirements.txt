@@ -1,0 +1,6 @@
+keyring==4.0
+python-dateutil==1.5
+
+-e git+https://github.com/boundlessgeo/geogig-py.git#egg=geogig-py
+
+ # test requirements

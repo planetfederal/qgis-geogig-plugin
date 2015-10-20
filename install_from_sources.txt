@@ -1,0 +1,25 @@
+Installing from the GitHub repository
+--------------------------------------
+
+To be able to use the GeoGig plugin from sources once you have cloned this repository, do the following:
+
+Open a console in the repository folder and type
+
+    paver setup
+
+That will fetch python dependencies of the plugin.
+
+The plugin assumes that GeoGig and a valid Java JRE to run it are placed in the plugin folder. These are not included in the repo, and not fetched by the paver setup task above , so they have to be installed manually.
+
+Create a "bin" folder in the src/versio folder, and two sub foldes named "jre" and "geogig" under it. 
+
+Put GeoGig binaries under the "geogig" folder (you should have two folders: "bin" and "repo")
+
+Under the jre folder create a new one named "osx" or "win" depending on your operating system (or create two of them, one with each name, if you plan to distribute the plugin and have it used in both OSs). Copy the JRE binary files corresponding to each OS under this folder
+
+To installl the plugin in QGIS, run the following from a console in the repository folder
+
+	paver install
+
+Open QGIS and make sure that the plugin is enabled, by opening the QGIS Plugin Manager.
+

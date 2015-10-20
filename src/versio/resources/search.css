@@ -1,0 +1,48 @@
+* {margin: 0; padding: 0;}
+ 
+div {
+  margin: 20px;
+}
+ 
+ul {
+  list-style-type: none;
+}
+ 
+h3 {
+  font: bold 15px Helvetica, Verdana, sans-serif;
+  margin: 0 0 10px 0px;
+}
+
+
+li {
+    border-bottom: 1px dashed grey;
+    margin: 0 0 10px 0;
+    font: 12px Helvetica, Verdana, sans-serif;
+}
+
+.button{
+    background-color:#3498db;
+    -moz-border-radius:22px;
+    -webkit-border-radius:22px;
+    border-radius:22px;
+    display:inline-block;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:arial;
+    font-size:12px;
+    padding:12px 34px;
+    text-decoration:none;
+    float: right;
+    margin: 0 15px 0 0;
+    width: 100px;
+    text-align: center;
+    position:relative;
+    top:1px;
+}
+.button:hover{
+    background-color:#2488cb;
+}
+
+
+
+
