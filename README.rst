@@ -6,7 +6,7 @@ This is a QGIS plugin to work with GeoGig repositories
 Installation
 *************
 
-To install, download the plugin bundle from here. It contains the plugin itself and GeoGig. There is no need to install GeoGig separately.
+To install, download the plugin bundle from `here <https://github.com/boundlessgeo/qgis-geogig-plugin/releases/download/first_version/geogig_only_plugin_full_bundle.zip>`_. It contains the plugin itself and GeoGig. There is no need to install GeoGig separately.
 
 At the moment, the plugin works only in OSX and Windows.
 
