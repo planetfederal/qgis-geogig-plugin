@@ -134,7 +134,7 @@ def removeLayer(layer):
     config.iface.legendInterface().addLegendLayerActionForLayer(addActions[layer], layer)
     addActions[layer].triggered.connect(lambda: addLayer(layer))
 
-class VersioPlugin:
+class GeoGigPlugin:
 
     def __init__(self, iface):
         self.iface = iface

@@ -1,6 +1,6 @@
 from qgis.core import *
 from qgis.gui import *
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from geogig.tools.layers import *
 import os
 from geogigpy.geogigexception import GeoGigException, UnconfiguredUserException
@@ -8,7 +8,6 @@ from geogigpy import geogig
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from geogig.tools.layertracking import addTrackedLayer, isTracked
-from geogig.tools.postgis_utils import DbError
 from geogig.gui.dialogs.addgeogigiddialog import AddGeogigIdDialog
 from geogig.tools.utils import *
 from geogigpy.repo import Repository
@@ -80,35 +79,8 @@ class ImportDialog(QtGui.QDialog):
             text = self.layerCombo.currentText()
             self.layer = resolveLayer(text)
 
-        isPostGis = self.layer.dataProvider().name() == "postgres"
-        isSpatiaLite = self.layer.dataProvider().name() == "sqlite"
         source = self.layer.source()
         hasIdField = self.layer.dataProvider().fieldNameIndex("geogigid") != -1
-        if isPostGis:
-            provider = self.layer.dataProvider()
-            uri = QgsDataSourceURI(provider.dataSourceUri())
-            username, password = getDatabaseCredentials(uri)
-            if password is None and username is None:
-                self.close()
-                return
-            try:
-                db = GeoDB(uri.host(), int(uri.port()), uri.database(), username, password)
-            except DbError:
-                QtGui.QMessageBox.warning(self, "Error",
-                                "Could not connect to database.\n"
-                                "Check that the provided credentials are correct.",
-                                QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-                removeCredentials(uri.database())
-                return
-            #look in the table directly, in case the layer is not refreshed
-            tableFields = [f.name for f in db.get_table_fields(uri.table(), uri.schema())]
-            hasIdField = 'geogigid' in tableFields
-            func = lambda: self.repo.importpg(uri.database(), username, password, uri.table(),
-                          uri.schema(), uri.host(), uri.port(), False, self.layer.name(), True, "geogigid")
-        elif isSpatiaLite:
-            provider = self.layer.dataProvider()
-            uri = QgsDataSourceURI(provider.dataSourceUri())
-            func = lambda: self.repo.importsl(uri.database(), uri.table(), False, self.layer.name())
 
         if not hasIdField:
             autoAddId = config.getConfigValue(config.GENERAL, config.AUTO_ADD_ID)
@@ -120,38 +92,20 @@ class ImportDialog(QtGui.QDialog):
                     return
                 if check:
                     config.setConfigValue(config.GENERAL, config.AUTO_ADD_ID, True)
-            try:
-                QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
-                addIdField(self.layer)
-                QtGui.QApplication.restoreOverrideCursor()
-                if isPostGis:
-                    tableFields = [f.name for f in db.get_table_fields(uri.table(), uri.schema())]
-                    hasIdField = 'geogigid' in tableFields
-                else:
-                    hasIdField = self.layer.dataProvider().fieldNameIndex("geogigid") != -1
-                if not hasIdField:
-                    QtGui.QMessageBox.warning(self, "Error",
-                                "Could not add 'geogigid' field to layer.\n"
-                                "Possible causes for this are:\n"
-                                "- No permission to edit the layer.\n"
-                                "- Layer format does not support editing.",
-                                QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-                    return
-            except DbError, e:
-                QtGui.QApplication.restoreOverrideCursor()
+
+            QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))
+            addIdField(self.layer)
+            QtGui.QApplication.restoreOverrideCursor()
+            hasIdField = self.layer.dataProvider().fieldNameIndex("geogigid") != -1
+            if not hasIdField:
                 QtGui.QMessageBox.warning(self, "Error",
-                                "Problem when accessing database:\n" +
-                                unicode(e),
-                                QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
-                removeCredentials(uri.database())
+                            "Could not add 'geogigid' field to layer.\n"
+                            "Possible causes for this are:\n"
+                            "- No permission to edit the layer.\n",
+                            QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                 return
 
-        if not isPostGis and not isSpatiaLite:
-            exported = exportVectorLayer(self.layer)
-            func = lambda: self.repo.importshp(exported, False, self.layer.name(), "geogigid", True)
-
-        func()
-
+        self.repo.importshp(source, False, self.layer.name(), "geogigid", True)
         message = self.messageBox.toPlainText()
         self.repo.add()
         try:

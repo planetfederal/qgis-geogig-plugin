@@ -1,6 +1,5 @@
 from qgis.core import *
 from PyQt4 import QtCore
-from geogig.tools.postgis_utils import GeoDB, TableConstraint, TableField
 import uuid
 import os
 from qgis.utils import iface
@@ -64,25 +63,16 @@ def addIdField(layer):
     layer.blockSignals(True)
     try:
         provider = layer.dataProvider()
-        caps = provider.capabilities()
-        if provider.name() == "postgres":
-            uri = QgsDataSourceURI(provider.dataSourceUri())
-            username, password = getDatabaseCredentials(uri)
-            db = GeoDB(uri.host(), int(uri.port()), uri.database(), username, password)
-            db.table_add_geogigid_column(uri.schema(), uri.table())
-            layer.reload()
-            setIdEditWidget(layer)
-        elif caps & QgsVectorDataProvider.AddAttributes:
-            provider.addAttributes([QgsField("geogigid", QtCore.QVariant.String)])
-            layer.updateFields()
-            idx = provider.fieldNameIndex("geogigid")
-            layer.startEditing()
-            features = layer.getFeatures()
-            for feature in features:
-                fid = int(feature.id())
-                layer.changeAttributeValue(fid, idx, str(uuid.uuid4()))
-            layer.commitChanges()
-            setIdEditWidget(layer)
+        provider.addAttributes([QgsField("geogigid", QtCore.QVariant.String)])
+        layer.updateFields()
+        idx = provider.fieldNameIndex("geogigid")
+        layer.startEditing()
+        features = layer.getFeatures()
+        for feature in features:
+            fid = int(feature.id())
+            layer.changeAttributeValue(fid, idx, str(uuid.uuid4()))
+        layer.commitChanges()
+        setIdEditWidget(layer)
     finally:
         layer.blockSignals(False)
 

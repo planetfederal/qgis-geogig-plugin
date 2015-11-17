@@ -1,11 +1,11 @@
 [general]
-name=GeoGigClient
+name=GeoGig Client
 description=GeoGig client for QGIS
 category=Data management
 version=1.0
-qgisMinimumVersion=2.0
+qgisMinimumVersion=2.6
 author=Victor Olaya
 email=volaya@boundlessgeo.com
 website=www.boundlessgeo.com
 icon=ui/resources/versio-16.png
-class_name=VersioPlugin
+class_name=GeoGigPlugin

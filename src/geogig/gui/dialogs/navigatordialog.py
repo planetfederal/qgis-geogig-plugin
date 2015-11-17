@@ -69,6 +69,8 @@ class NavigatorDialog(QtGui.QDialog):
         self.ui.tabWidget.currentChanged.connect(self.tabChanged)
         self.ui.repoTree.customContextMenuRequested.connect(self.showRepoTreePopupMenu)
         self.ui.repoDescription.setOpenLinks(False)
+        self.connect(self.ui.repoDescription, QtCore.SIGNAL("anchorClicked(const QUrl&)"),
+                     self.descriptionLinkClicked)
         self.ui.repoTree.setFocusPolicy(QtCore.Qt.NoFocus)
 
         with open(resourceFile("repodescription.css")) as f:
@@ -97,7 +99,6 @@ class NavigatorDialog(QtGui.QDialog):
         self.versionsTree.headChanged.connect(self.updateBranchLabel)
         self.versionsTree.repoChanged.connect(self.statusWidget.updateLabelText)
         self.statusWidget.repoChanged.connect(self.versionsTree.updateCurrentBranchItem)
-        self.statusWidget.repoUploaded.connect(self.currentRepoWasUploaded)
 
         self.lastSelectedRepoItem = None
 
@@ -106,6 +107,17 @@ class NavigatorDialog(QtGui.QDialog):
 
         self.layersFilterDialog = None
         self.repoLayers = []
+
+    def descriptionLinkClicked(self, url):
+        url = url.toString()
+        if url == "title":
+            text, ok = QtGui.QInputDialog.getText(self, 'Title',
+                                              'Enter the new repository title:',
+                                              text = self.currentRepo.title)
+            if ok:
+                self.currentRepo.title = text
+                self.ui.repoDescription.setText(self.currentRepo.fullDescription)
+                self.lastSelectedRepoItem.refreshTitle()
 
     def fillTree(self):
         self.updateCurrentRepo(None, None)
@@ -204,17 +216,6 @@ class NavigatorDialog(QtGui.QDialog):
             self.statusWidget.updateLabelText()
         elif dlg.pushed:
             self.statusWidget.updateLabelText()
-
-    def uploadRepo(self):
-        self.currentRepo.uploadRepo()
-        self.currentRepoWasUploaded()
-
-    def currentRepoWasUploaded(self):
-        item = RepoItem(self.currentRepo)
-        self.privateVersioReposItem.addChild(item)
-        self.ui.repoTree.sortItems(0, QtCore.Qt.AscendingOrder)
-        self.lastSelectedRepoItem.parent().removeChild(self.lastSelectedRepoItem)
-        self.updateCurrentRepo(None, None)
 
 
     def batchImport(self):
