@@ -6,6 +6,7 @@ from geogig.gui.executor import execute
 from geogig.tools.utils import *
 import time
 from datetime import datetime
+import traceback
 
 def localRepos():
     repos = [RepositoryWrapper(path) for path in repoPaths().values()]
@@ -53,7 +54,7 @@ class RepositoryWrapper(object):
                 footnote += "<p>Your current branch is set to <b>%s</b>. GeoGig will track and sync with this branch.</p>" % ref
                 c = Commit.fromref(self.repo(), ref)
                 epoch = time.mktime(c.committerdate.timetuple())
-                offset = datetime.datetime.fromtimestamp (epoch) - datetime.datetime.utcfromtimestamp (epoch)
+                offset = datetime.fromtimestamp (epoch) - datetime.utcfromtimestamp (epoch)
                 d = c.committerdate + offset
                 lastDate = d.strftime("%b %d, %Y %I:%M%p")
                 author = c.authorname
