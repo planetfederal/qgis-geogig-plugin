@@ -1,12 +1,9 @@
 import os
 import logging
 import shutil
-import getpass
 from PyQt4 import QtGui, QtCore
 from qgis.core import *
 from qgis.gui import *
-from geogig.ui.navigatordialog import Ui_NavigatorDialog
-from geogig.gui.dialogs.userpasswd import UserPasswordDialog
 from geogig import config
 from geogig.gui.executor import execute
 from geogig.tools.exporter import loadRepoExportedLayers, exportFullRepo
@@ -24,6 +21,7 @@ from geogig.tools.layers import getVectorLayers
 from geogig.gui.dialogs.batchimportdialog import BatchImportDialog
 from geogig.gui.dialogs.syncdialog import SyncDialog
 from geogig.tools.repowrapper import *
+from geogig.ui.navigatordialog import Ui_NavigatorDialog
 
 def icon(f):
     return QtGui.QIcon(os.path.join(os.path.dirname(__file__),

@@ -11,7 +11,6 @@ import traceback
 from geogigpy.geogigexception import UnconfiguredUserException, GeoGigException
 from geogig.tools.exporter import exportVectorLayer
 from geogig.tools.layertracking import setInSync, setRef
-from geogig.tools.layers import getDatabaseCredentials
 from geogigpy.py4jconnector import Py4JConnectionException
 from geogig.gui.dialogs.gatewaynotavailabledialog import GatewayNotAvailableWhileEditingDialog
 import uuid
@@ -207,22 +206,10 @@ class LayerTracker(object):
 
     def doUpdateLayer(self, dest, repo):
         if self.layer.dataProvider().fieldNameIndex("geogigid") == -1:
-            iface.messageBar().pushMessage("Cannot update Versio repository. Layer has no 'geogigid' field",
+            iface.messageBar().pushMessage("Cannot update GeoGig repository. Layer has no 'geogigid' field",
                                                       level = QgsMessageBar.WARNING, duration = 4)
         else:
-            if self.layer.dataProvider().name() == "postgres":
-                provider = self.layer.dataProvider()
-                uri = QgsDataSourceURI(provider.dataSourceUri())
-                username, password = getDatabaseCredentials(uri)
-                if password is None and username is None:
-                    setInSync(self.layer, False)
-                    _logger.debug("Update canceled, setting layer as not synchronized")
-                    return
-                repo.importpg(uri.database(), username, password, uri.table(),
-                              uri.schema(), uri.host(), uri.port(), False, dest, True)
-                setInSync(self.layer, True)
-            else:
-                exported = exportVectorLayer(self.layer)
-                repo.importshp(exported, False, dest, "geogigid", True)
-                setInSync(self.layer, True)
+            exported = exportVectorLayer(self.layer)
+            repo.importshp(exported, False, dest, "geogigid", True)
+            setInSync(self.layer, True)
 

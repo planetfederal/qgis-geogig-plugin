@@ -1,7 +1,6 @@
 from qgis.core import *
 from PyQt4 import QtCore
 from geogig.tools.postgis_utils import GeoDB, TableConstraint, TableField
-from geogig.gui.dialogs.userpasswd import UserPasswordDialog
 import uuid
 import os
 from qgis.utils import iface
@@ -42,7 +41,6 @@ def getVectorLayers(shapetype = -1):
 
 def getAllLayers():
     return getVectorLayers()
-
 
 def getGroups():
     groups = {}
@@ -88,25 +86,4 @@ def addIdField(layer):
     finally:
         layer.blockSignals(False)
 
-_credentials = {}
-
-def getDatabaseCredentials(uri):
-    if uri.password() and uri.username():
-        return uri.username(), uri.password()
-    global _credentials
-    if uri.database() in _credentials:
-        return _credentials[uri.database()]
-    dlg = UserPasswordDialog(title = "Credentials for PostGIS layer")
-    dlg.exec_()
-    if dlg.user is None:
-        return None, None
-    u = dlg.user
-    p = dlg.password
-    _credentials[uri.database()] = (u, p)
-    return u, p
-
-def removeCredentials(database):
-    global _credentials
-    if database in _credentials:
-        del _credentials[database]
 
