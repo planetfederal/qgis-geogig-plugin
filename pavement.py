@@ -12,10 +12,10 @@ import zipfile
 
 options(
     plugin = Bunch(
-        name = 'versio',
-        ext_libs = path('src/versio/ext-libs'),
-        ext_src = path('src/versio/ext-src'),
-        source_dir = path('src/versio'),
+        name = 'geogig',
+        ext_libs = path('src/geogig/ext-libs'),
+        ext_src = path('src/geogig/ext-src'),
+        source_dir = path('src/geogig'),
         package_dir = path('.'),
         excludes = [
             'metadata.*',
@@ -128,7 +128,7 @@ def make_zip(zip, options):
     
     buf = StringIO()
     cfg.write(buf)
-    zip.writestr("versio/metadata.txt", buf.getvalue())
+    zip.writestr("geogig/metadata.txt", buf.getvalue())
 
     excludes = set(options.plugin.excludes)
 
