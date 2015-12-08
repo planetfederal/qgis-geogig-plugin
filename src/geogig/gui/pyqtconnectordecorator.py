@@ -30,8 +30,11 @@ def jrePath():
         osName = "osx"
         jre = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'bin', 'jre', osName)
     else:
-        return
+        cmd = 'readlink -f $(which java)'
+        javaPath = subprocess.check_output(cmd, shell=True)
+        jre = os.path.dirname(os.path.dirname(javaPath))
     if os.path.exists(jre):
+        _logger.debug('Found JRE ' + jre)
         return jre
 
 def geogigVersion():
@@ -183,7 +186,6 @@ def startGateway():
             _logger.debug("Gateway correctly started")
         else:
             raise Exception("Gateway not available")
-
 
     except Exception, e:
         _logger.error("Could not start gateway (%s)" % (unicode(e)))
