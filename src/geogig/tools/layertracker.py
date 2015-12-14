@@ -60,18 +60,19 @@ class LayerTracker(object):
     def featuresAdded(self, features):
         if not isTracked(self.layer):
             return
+        self.hasChanges = True
         for feature in features:
-            self.hasChanges = True
             self.featuresToUpdate.add(feature.id())
             self.newFeatures.append(feature.id())
 
     def featureDeleted(self, fid):
+        self.hasChanges = True
         if not isTracked(self.layer):
             return
         if not self.canUseSmartUpdate:
             return
         if fid >= 0:
-            self.hasChanges = True
+
             fIterator = self.layer.dataProvider().getFeatures(QgsFeatureRequest(fid));
             try:
                 geogigfid = self._getFid(fIterator.next())
@@ -115,6 +116,10 @@ class LayerTracker(object):
 
         self.ensureUniqueIDs()
         self.hasChanges = False
+
+        autoCommit = config.getConfigValue(config.GENERAL, config.AUTO_COMMIT)
+        if not autoCommit:
+            return
 
         try:
             repo = createRepository(trackedlayer.repoFolder(), False)
