@@ -10,7 +10,7 @@ To install, download the plugin bundle from `here <https://github.com/boundlessg
 
 At the moment, the plugin works only in OSX and Windows.
 
-Unzip the bundle zip file into ``[your_user_folder]/.qgis2/python/plugins/`` (You may need to create this directory)
+Unzip the bundle zip file into ``[your_user_folder]/.qgis2/python/plugins/`` (You may need to create this directory). You should have a ``geogig`` folder under the QGIS plugins folder.
 
 Open QGIS and make sure that the plugin is enabled, by opening the QGIS Plugin Manager.
 
