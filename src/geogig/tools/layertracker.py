@@ -16,6 +16,7 @@ from geogig.gui.dialogs.gatewaynotavailabledialog import GatewayNotAvailableWhil
 import uuid
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from qgis.utils import iface
+from geogig import config
 
 _logger = logging.getLogger("geogigpy")
 
@@ -29,6 +30,7 @@ class LayerTracker(object):
         self.canUseSmartUpdate = True
         self.hasChanges = False
         self.rollback = False
+        self.canUseSmartUpdate = config.getConfigValue(config.GENERAL, config.USE_SMART_UPDATE)
 
     def _featuresAdded(self, layername, features):
         self.featuresAdded(features)
@@ -52,7 +54,7 @@ class LayerTracker(object):
         self.featuresToUpdate = set()
         self.newFeatures = []
         self.featuresToRemove = []
-        self.canUseSmartUpdate = True
+        self.canUseSmartUpdate = config.getConfigValue(config.GENERAL, config.USE_SMART_UPDATE)
         self.hasChanges = False
 
     def featuresAdded(self, features):
