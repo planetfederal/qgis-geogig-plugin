@@ -74,7 +74,7 @@ class ConfigDialog(QtGui.QDialog):
         item.setIcon(0, icon)
         for param in params:
             paramName = "/Geogig/Settings/" + name + "/" + param[0]
-            subItem = TreeSettingItem(paramName, *param[1:])
+            subItem = TreeSettingItem(self.tree, item, paramName, *param[1:])
             item.addChild(subItem)
         return item
 
@@ -103,13 +103,34 @@ class ConfigDialog(QtGui.QDialog):
 
 class TreeSettingItem(QtGui.QTreeWidgetItem):
 
-    def __init__(self, name, description, defaultValue, paramType, check):
-        QtGui.QTreeWidgetItem.__init__(self)
+    def __init__(self, tree, parent, name, description, defaultValue, paramType, check):
+        QtGui.QTreeWidgetItem.__init__(self, parent)
+        self.parent = parent
         self.name = name
         self.check = check
         self.paramType = paramType
         self.setText(0, description)
-        if isinstance(defaultValue, bool):
+        self.tree = tree
+        if paramType == config.TYPE_FOLDER:
+            self.value = QtCore.QSettings().value(name, defaultValue = defaultValue)
+            layout = QtGui.QHBoxLayout()
+            layout.setContentsMargins(0, 0, 0, 0)
+            self.lineEdit = QtGui.QLineEdit()
+            self.lineEdit.setText(self.value)
+            self.label = QtGui.QLabel()
+            self.label.setText("<a href='#'> Browse</a>")
+            self.lineEdit.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+            layout.addWidget(self.lineEdit)
+            layout.addWidget(self.label)
+            def edit():
+                folder =  QtGui.QFileDialog.getExistingDirectory(tree, description, self.value)
+                if folder:
+                    self.lineEdit.setText(folder)
+            self.label.connect(self.label, QtCore.SIGNAL("linkActivated(QString)"), edit)
+            w = QtGui.QWidget()
+            w.setLayout(layout)
+            self.tree.setItemWidget(self, 1, w)
+        elif isinstance(defaultValue, bool):
             self.value = QtCore.QSettings().value(name, defaultValue = defaultValue, type = bool)
             if self.value:
                 self.setCheckState(1, QtCore.Qt.Checked)
@@ -121,7 +142,9 @@ class TreeSettingItem(QtGui.QTreeWidgetItem):
             self.setText(1, unicode(self.value))
 
     def getValue(self):
-        if isinstance(self.value, bool):
+        if self.paramType == config.TYPE_FOLDER:
+            return self.lineEdit.text()
+        elif isinstance(self.value, bool):
             return self.checkState(1) == QtCore.Qt.Checked
         else:
             return self.text(1)
