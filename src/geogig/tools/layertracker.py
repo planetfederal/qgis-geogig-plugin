@@ -99,17 +99,18 @@ class LayerTracker(object):
         self.rollback = True
 
     def editingStopped(self):
+        if self.rollback:
+            _logger.debug("Editing stopped for layer '%s'. Layer changes are roolback" % self.layer.name())
+            self.rollback = False
+            return
         if not isTracked(self.layer):
             _logger.debug("Editing stopped for layer '%s'. Layer is not tracked" % self.layer.name())
             return
         if not self.hasChanges:
             _logger.debug("Editing stopped for layer '%s' without changes" % self.layer.name())
             return
-        if self.rollback:
-            self.rollback = False
-            return
         _logger.debug("Editing stopped for layer '%s'." % self.layer.name())
-
+        
         trackedlayer = getTrackingInfo(self.layer)
         insync = trackedlayer.insync
         setInSync(self.layer, False)
