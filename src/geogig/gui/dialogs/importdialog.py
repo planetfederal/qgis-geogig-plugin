@@ -12,6 +12,7 @@ from geogig.gui.dialogs.addgeogigiddialog import AddGeogigIdDialog
 from geogig.tools.utils import *
 from geogigpy.repo import Repository
 from geogig.gui.pyqtconnectordecorator import PyQtConnectorDecorator
+from geogig.tools.repowrapper import localRepos
 
 class ImportDialog(QtGui.QDialog):
 
@@ -28,10 +29,7 @@ class ImportDialog(QtGui.QDialog):
 
         if self.repo is None:
             repos = localRepos()
-            self.repos = {}
-            for user, userrepos in repos.iteritems():
-                self.repos.update({ title:path
-                                   for title, path in userrepos.iteritems()})
+            self.repos = {r.title:r.path for r in repos}
             layerLabel = QtGui.QLabel('Repository')
             verticalLayout.addWidget(layerLabel)
             self.repoCombo = QtGui.QComboBox()
