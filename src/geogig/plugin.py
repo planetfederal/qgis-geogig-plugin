@@ -25,7 +25,7 @@ from geogigpy.repo import Repository
 from geogig.gui.dialogs.historyviewer import HistoryViewerDialog
 from geogig.gui.executor import execute
 from PyQt4 import QtCore, QtGui
-from geogig.tools.repowrapper import RepositoryWrapper
+from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
