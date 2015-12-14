@@ -6,7 +6,6 @@ from geogig.gui.executor import execute
 from geogig.tools.utils import *
 import time
 from datetime import datetime
-import traceback
 
 def localRepos():
     repos = [RepositoryWrapper(path) for path in repoPaths().values()]
