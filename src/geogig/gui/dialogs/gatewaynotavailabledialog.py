@@ -34,7 +34,7 @@ class GatewayNotAvailableDialog(QtGui.QDialog):
         self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.close)
 
         self.resize(500, 400)
-        self.setWindowTitle("Error connecting to Versio")
+        self.setWindowTitle("Error connecting to GeoGig")
 
     def linkClicked(self):
         webbrowser.open_new_tab("http://geogig.com")

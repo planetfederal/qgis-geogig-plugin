@@ -8,7 +8,7 @@ class GeoGigErrorDialog(QtGui.QDialog):
 
     def __init__(self, trace, parent = None):
         super(GeoGigErrorDialog, self).__init__(parent)
-        pluginVersion = "Plugin version: " + pluginMetadata("versio", "version")
+        pluginVersion = "Plugin version: " + pluginMetadata("geogig", "version")
         try:
             geogigpyVersion = "Geogig-py version: " + geogigpy.__version__
         except:

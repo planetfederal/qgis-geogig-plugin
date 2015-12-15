@@ -24,7 +24,7 @@ class MapToolGeoGigInfo(QgsMapTool):
                                                   level = QgsMessageBar.WARNING, duration = 4)
             return
         if not layertracking.isTracked(layer):
-            config.iface.messageBar().pushMessage("The current active layer is not being tracked as part of a versio repo",
+            config.iface.messageBar().pushMessage("The current active layer is not being tracked as part of a GeoGig repo",
                                                   level = QgsMessageBar.WARNING, duration = 4)
             return
 

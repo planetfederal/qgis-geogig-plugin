@@ -282,7 +282,7 @@ class GeoGigPlugin:
             else:
                 trace = "".join(traceback.format_exception(t, value, tb))
                 QgsMessageLog.logMessage(trace, "GeoGig", QgsMessageLog.CRITICAL)
-                if "versio" in trace.lower():
+                if "geogig" in trace.lower():
                     dlg = GeoGigErrorDialog(trace, self.iface.mainWindow())
                     dlg.exec_()
                 else:

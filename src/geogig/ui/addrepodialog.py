@@ -217,7 +217,7 @@ class Ui_AddRepoDialog(object):
     def retranslateUi(self, AddRepoDialog):
         AddRepoDialog.setWindowTitle(_translate("AddRepoDialog", "Add or Create a Repository", None))
         self.addRepoLabel.setText(_translate("AddRepoDialog", "Add existing repository:", None))
-        self.addRepoFolderBox.setPlaceholderText(_translate("AddRepoDialog", "Local or remote Versio repository location", None))
+        self.addRepoFolderBox.setPlaceholderText(_translate("AddRepoDialog", "Local or remote GeoGig repository location", None))
         self.selectRepoFolderButton.setText(_translate("AddRepoDialog", "...", None))
         self.cloneCheckBox.setText(_translate("AddRepoDialog", "Copy repository locally to:", None))
         self.selectCloneFolderButton.setText(_translate("AddRepoDialog", "...", None))
