@@ -29,7 +29,7 @@ from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from layeractions import setAsTracked, setAsUntracked
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
