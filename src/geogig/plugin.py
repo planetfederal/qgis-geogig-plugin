@@ -94,6 +94,13 @@ class GeoGigPlugin:
 
         config.initConfigParams()
 
+        try:
+            from qgistester.tests import addTestModule
+            from geogig.test import testplugin
+            addTestModule(testplugin, "GeoGig")
+        except:
+            pass
+
     def unload(self):
         QgsMapLayerRegistry.instance().layerWasAdded.disconnect(trackLayer)
         self.menu.deleteLater()
