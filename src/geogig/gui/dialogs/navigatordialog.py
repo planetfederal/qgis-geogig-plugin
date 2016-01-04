@@ -22,6 +22,7 @@ from geogig.gui.dialogs.batchimportdialog import BatchImportDialog
 from geogig.gui.dialogs.syncdialog import SyncDialog
 from geogig.tools.repowrapper import *
 from geogig.ui.navigatordialog import Ui_NavigatorDialog
+from geogig.layeractions import setAsTracked
 
 def icon(f):
     return QtGui.QIcon(os.path.join(os.path.dirname(__file__),
@@ -235,6 +236,7 @@ class NavigatorDialog(QtGui.QDialog):
             if dlg.ok:
                 self.versionsTree.updateCurrentBranchItem()
                 self.statusWidget.updateLabelText()
+                setAsTracked(dlg.layer)
         else:
             QtGui.QMessageBox.warning(self, 'Cannot add layer',
                 "No suitable layers can be found in your current QGIS project.\n"
