@@ -50,7 +50,7 @@ def exportFullRepo(repo, ref = geogig.HEAD):
         if trackedlayer is None or not os.path.exists(trackedlayer.source):
             filepath = os.path.join(repo.url, tree.path + ".shp")
             repo.exportshp(ref, tree.path, filepath)
-            addTrackedLayer(filepath, reponame, repoowner, repouser, tree.path, ref)
+            addTrackedLayer(filepath, repo.url, tree.path, ref)
         elif trackedlayer.ref != ref:
             repo.exportshp(ref, tree.path, trackedlayer.source)
             setRef(trackedlayer.source, ref)

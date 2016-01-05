@@ -250,8 +250,6 @@ class NavigatorDialog(QtGui.QDialog):
                         QtGui.QMessageBox.Yes);
         if ret == QtGui.QMessageBox.No:
             return
-        reponame = item.repo.name
-        execute(lambda: deleteRepo(reponame))
         self.lastSelectedRepoItem.parent().removeChild(self.lastSelectedRepoItem)
         if item.parent() == self.sharedVersioReposItem:
             self.lastSelectedRepoItem.setIcon(0, disabledRepoIcon)

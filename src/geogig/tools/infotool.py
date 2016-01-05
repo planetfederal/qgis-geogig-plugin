@@ -56,7 +56,7 @@ class MapToolGeoGigInfo(QgsMapTool):
         try:
             connector = PyQtConnectorDecorator()
             connector.checkIsAlive()
-            repo = Repository(trackedlayer.repoFolder(), connector, False)
+            repo = Repository(trackedlayer.repoFolder, connector, False)
         except Exception, e:
             config.iface.messageBar().pushMessage("The repository linked to the active layer is not valid",
                                                   level = QgsMessageBar.WARNING, duration = 4)

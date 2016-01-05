@@ -123,7 +123,7 @@ class LayerTracker(object):
             return
 
         try:
-            repo = createRepository(trackedlayer.repoFolder(), False)
+            repo = createRepository(trackedlayer.repoFolder, False)
         except Py4JConnectionException:
             _logger.debug("Could not connect to repository for updating layer '%s'" % self.layer.name())
             QtGui.QApplication.restoreOverrideCursor()

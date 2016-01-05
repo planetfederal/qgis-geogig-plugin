@@ -21,21 +21,19 @@ class Encoder(JSONEncoder):
 def decoder(jsonobj):
     if 'source' in jsonobj:
         return TrackedLayer(jsonobj['source'],
-                            jsonobj['reponame'], jsonobj['layername'],
+                            jsonobj['repoFolder'], jsonobj['layername'],
                             jsonobj['ref'], jsonobj['insync'])
     else:
         return jsonobj
 
 class TrackedLayer(object):
-    def __init__(self, source, reponame, layername, ref, insync):
-        self.reponame = reponame
+    def __init__(self, source, repoFolder, layername, ref, insync):
+        self.repoFolder = repoFolder
         self.layername = layername
         self.ref = ref
         self.source = source
         self.insync = insync
 
-    def repoFolder(self):
-        return repoFolder(self.reponame)
 
 def setInSync(layer, insync):
     source = _formatSource(layer)
@@ -53,10 +51,10 @@ def setRef(layer, ref):
     saveTracked()
 
 
-def addTrackedLayer(source, reponame, layername, ref):
+def addTrackedLayer(source, repoFolder, layername, ref):
     global tracked
     source = _formatSource(source)
-    layer = TrackedLayer(source, reponame, layername, ref, True)
+    layer = TrackedLayer(source, repoFolder, layername, ref, True)
     if layer not in tracked:
         for lay in tracked:
             if lay.source == source:
@@ -119,13 +117,13 @@ def getTrackingInfo(layer):
 
 def getTrackingInfoForGeogigLayer(repoFolder, layername):
     for t in tracked:
-        if (t.repoFolder() == repoFolder and t.layername == layername):
+        if (t.repoFolder == repoFolder and t.layername == layername):
             return t
 
 def getTrackedPathsForRepo(repo):
     repoLayers = [tree.path for tree in repo.trees]
     trackedPaths = [layer.source for layer in tracked
-                if repo.url == layer.repoFolder() and layer.layername in repoLayers]
+                if repo.url == layer.repoFolder and layer.layername in repoLayers]
     return trackedPaths
 
 def updateTrackedLayers(repo):

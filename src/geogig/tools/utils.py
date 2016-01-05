@@ -145,7 +145,6 @@ def loadLayerNoCrsDialog(filename, layername, provider):
     return layer
 
 
-
 def createRepo(title):
     safeName = "".join(x for x in title if x.isalnum())
     path = os.path.join(repoFolder(safeName))
@@ -154,6 +153,3 @@ def createRepo(title):
     with open(filename, "w") as f:
         f.write(title)
     return repo
-
-def deleteRepo(reponame):
-    pass

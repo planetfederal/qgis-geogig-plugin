@@ -128,8 +128,7 @@ class ImportDialog(QtGui.QDialog):
             raise
 
         ref = self.repo.revparse(geogig.HEAD)
-        reponame = nameFromRepoPath(self.repo.url)
-        addTrackedLayer(self.layer or source, reponame, self.layer.name(), ref)
+        addTrackedLayer(self.layer or source, self.repo.url, self.layer.name(), ref)
         self.ok = True
         config.iface.messageBar().pushMessage("Layer was correctly added to repository",
                                                   level = QgsMessageBar.INFO, duration = 4)

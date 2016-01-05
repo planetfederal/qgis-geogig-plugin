@@ -66,7 +66,7 @@ def _repoForLayer(layer):
     tracking = getTrackingInfo(layer)
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    return Repository(tracking.repoFolder(), connector), tracking.layername
+    return Repository(tracking.repoFolder, connector), tracking.layername
 
 def layerHistory(layer):
     repo, layername = _repoForLayer(layer)
@@ -111,7 +111,7 @@ def removeLayer(layer):
 def commitLayer(layer):
     trackedLayer = getTrackingInfo(layer)
     try:
-        repo = createRepository(trackedLayer.repoFolder(), False)
+        repo = createRepository(trackedLayer.repoFolder, False)
     except Py4JConnectionException:
         QtGui.QApplication.restoreOverrideCursor()
         dlg = GatewayNotAvailableWhileEditingDialog(config.iface.mainWindow())
