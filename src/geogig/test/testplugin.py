@@ -9,6 +9,11 @@ from geogig.tools.layertracking import getTrackingInfo, removeTrackedLayer
 from geogig.gui.pyqtconnectordecorator import PyQtConnectorDecorator
 from geogigpy.repo import Repository
 from tools.exporter import exportFullRepo
+from geogigpy.commitish import Commitish
+try:
+    from qgistester.utils import layerFromName
+except:
+    pass
 
 # Tests for the QGIS Tester plugin. To know more see
 # https://github.com/boundlessgeo/qgis-tester-plugin
@@ -77,7 +82,6 @@ def _cleanRepoClone():
 #TESTS
 
 def _checkLayerInRepo():
-    from qgistester.utils import layerFromName
     layer = layerFromName("points")
     tracking = getTrackingInfo(layer)
     assert tracking is not None
@@ -89,7 +93,6 @@ def _checkLayerInRepo():
     removedTrackedLayer(layer)
 
 def _checkLayerNotInRepo():
-    from qgistester.utils import layerFromName
     layer = layerFromName("points")
     tracking = getTrackingInfo(layer)
     assert tracking is None
@@ -100,16 +103,38 @@ def _checkLayerNotInRepo():
     assert "points" not in layers
 
 def _checkLayerInProject():
-    from qgistester.utils import layerFromName
     layer = layerFromName("points")
     assert layer is not None
 
+def _modifyFeature():
+    layer = layerFromName("points")
+    feature = layer.getFeatures().next()
+    fid = feature.id()
+    layer.startEditing()
+    layer.changeAttributeValue(fid, 0, "100")
+    layer.commitChanges()
+
+def _checkFeatureModifiedInRepo():
+    connector = PyQtConnectorDecorator()
+    connector.checkIsAlive()
+    repo =  Repository(os.path.join(_tempReposPath, "repo"), connector)
+    diffs = repo.diff("master", Commitish(repo, "master").parent.ref)
+    assert 1 == len(diffs)
+    layer = layerFromName("points")
+    feature = layer.getFeatures().next()
+    geogigid = str(feature[1])
+    assert "points/" + geogigid == diffs[0].path
+
+def _addFeature():
+    pass
+
+def _checkFeatureAddedInRepo():
+    pass
 
 
 def functionalTests():
     try:
         from qgistester.test import Test
-        from qgistester.utils import layerFromName
     except:
         return []
 
@@ -163,13 +188,22 @@ def functionalTests():
     test.setCleanup(_cleanRepoClone)
     tests.append(test)
 
-    test = Test("Modify geometry and create new version")
+    test = Test("Modify feature and create new version")
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Edit layer", _modifyFeature)
+    test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'")
+    test.addStep("Check layer has been updated", _checkFeatureModifiedInRepo)
+    test.setCleanup(_cleanRepoClone)
     tests.append(test)
-    test = Test("Modify attributes and create new version")
-    tests.append(test)
-    test = Test("Delete feature and create new version")
-    tests.append(test)
+
     test = Test("Add feature and create new version")
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Edit layer", _addFeature)
+    test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'")
+    test.addStep("Check layer has been updated", _checkFeatureAddedInRepo)
+    test.setCleanup(_cleanRepoClone)
     tests.append(test)
 
     test = Test("Add layer to repository from context menu")
