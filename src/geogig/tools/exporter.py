@@ -40,9 +40,6 @@ def exportVectorLayer(layer):
         return filename
 
 def exportFullRepo(repo, ref = geogig.HEAD):
-    reponame = nameFromRepoPath(repo.url)
-    repouser = userFromRepoPath(repo.url)
-    repoowner = ownerFromRepoPath(repo.url)
     trees = repo.trees
     ref = repo.revparse(ref)
     for tree in trees:

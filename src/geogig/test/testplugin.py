@@ -59,13 +59,15 @@ def _checkLayerInRepo():
     assert "points" in layers
     removedTrackedLayer(layer)
 
+def _checkLayerInProject():
+    layer = layerFromName("points")
+    assert layer is not None
 
 def functionalTests():
     try:
         from qgistester.test import Test
         from qgistester.utils import layerFromName
     except:
-        raise
         return []
 
     tests = []
@@ -103,8 +105,19 @@ def functionalTests():
 
 
     test = Test("Open repository layers in QGIS")
+    test.addStep("Open navigator", lambda: openNavigator("pointsrepo"))
+    test.addStep("New project", qgis.utils.iface.addProject)
+    test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
+    test.addStep("Check layer has been added to project", _checkLayerInProject)
+    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
+
     test = Test("Update repository when there are no changes")
+    test.addStep("Open navigator", lambda: openNavigator("pointsrepo"))
+    test.addStep("Open test data", lambda: openTestProject("points"))
+    test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
+    test.addStep("Check layer has been added to project", _checkLayerInProject)
+
     tests.append(test)
     test = Test("Modify geometry and create new version")
     tests.append(test)
