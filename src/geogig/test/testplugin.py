@@ -26,8 +26,8 @@ _navigatorDialog = None
 _oldReposPath = None
 _tempReposPath = None
 
-def openNavigator(folder):
-    global _navigatorDialog
+def _setReposFolder(folder):
+
     global _oldReposPath
     global _tempReposPath
     _oldReposPath = config.getConfigValue(config.GENERAL, config.REPOS_FOLDER)
@@ -36,15 +36,22 @@ def openNavigator(folder):
     tempReposPath = os.path.join(_tempReposPath, "repos")
     shutil.copytree(reposPath, tempReposPath)
     config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, tempReposPath)
+
+def _restoreReposFolder():
+    config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, _oldReposPath)
+
+def _openNavigator(folder):
+    global _navigatorDialog
+    _setReposFolder(folder)
     _navigatorDialog = NavigatorDialog()
     _navigatorDialog.show()
 
-def closeNavigatorAndRemoveTempRepoFolder():
+def _closeNavigatorAndRemoveTempRepoFolder():
     global _navigatorDialog
     if _navigatorDialog is not None:
         _navigatorDialog.close()
         _navigatorDialog = None
-    config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, _oldReposPath)
+    _restoreReposFolder()
     shutil.rmtree(_tempReposPath, ignore_errors = True)
 
 def _exportRepoLayers(reposFolder, repoFolder):
@@ -62,6 +69,7 @@ def _exportRepoLayers(reposFolder, repoFolder):
     QgsMapLayerRegistry.instance().addMapLayers([layer], True)
 
 def _cleanRepoClone():
+    _restoreReposFolder()
     qgis.utils.iface.newProject()
     if _tempReposPath is not None:
         shutil.rmtree(_tempReposPath, ignore_errors = True)
@@ -75,10 +83,21 @@ def _checkLayerInRepo():
     assert tracking is not None
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    repo =  Repository(tracking.repoFolder(), connector)
+    repo =  Repository(tracking.repoFolder, connector)
     layers = [tree.path for tree in repo.trees]
     assert "points" in layers
     removedTrackedLayer(layer)
+
+def _checkLayerNotInRepo():
+    from qgistester.utils import layerFromName
+    layer = layerFromName("points")
+    tracking = getTrackingInfo(layer)
+    assert tracking is None
+    connector = PyQtConnectorDecorator()
+    connector.checkIsAlive()
+    repo =  Repository(os.path.join(_tempReposPath, "pointsrepo"), connector)
+    layers = [tree.path for tree in repo.trees]
+    assert "points" not in layers
 
 def _checkLayerInProject():
     from qgistester.utils import layerFromName
@@ -96,44 +115,44 @@ def functionalTests():
 
     tests = []
     test = Test("Create new repository")
-    test.addStep("Open navigator", lambda: openNavigator("new"))
+    test.addStep("Open navigator", lambda: _openNavigator("new"))
     test.addStep("Create new repo and verify it is correctly added to the list")
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Create new repository with existing name")
-    test.addStep("Open navigator", lambda: openNavigator("emptyrepo"))
+    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Create new repo named 'testrepo' and verify it cannot be created")
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Change repository title")
-    test.addStep("Open navigator", lambda: openNavigator("emptyrepo"))
+    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Edit repository title and check it is updated in the repo summary")
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Delete repository")
-    test.addStep("Open navigator", lambda: openNavigator("emptyrepo"))
+    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Delete repository and check it is removed from the list")
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Add layer to repository")
-    test.addStep("Open navigator", lambda: openNavigator("emptyrepo"))
+    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Open test data", lambda: openTestProject("points"))
     test.addStep("Add layer 'points' to the 'testrepo' repository")
     test.addStep("Check layer has been added to repo", _checkLayerInRepo)
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
 
     test = Test("Open repository layers in QGIS")
-    test.addStep("Open navigator", lambda: openNavigator("pointsrepo"))
+    test.addStep("Open navigator", lambda: _openNavigator("pointsrepo"))
     test.addStep("New project", qgis.utils.iface.newProject)
     test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
     test.addStep("Check layer has been added to project", _checkLayerInProject)
-    test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Update repository when there are no changes")
@@ -152,9 +171,21 @@ def functionalTests():
     tests.append(test)
     test = Test("Add feature and create new version")
     tests.append(test)
+
     test = Test("Add layer to repository from context menu")
+    test.addStep("Open test data", lambda: openTestProject("points"))
+    test.addStep("Set repos folder", _setReposFolder("emptyrepo"))
+    test.addStep("Add layer using context menu")
+    test.addStep("Check layer has been added to repo", _checkLayerInRepo)
+    test.setCleanup(_cleanRepoClone)
     tests.append(test)
+
     test = Test("Remove layer from repository")
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Right click on 'points' layer and select 'GeoGig/Remove layer from repository'")
+    test.addStep("Check layer has been correctly deleted", _checkLayerNotInRepo)
+    test.setCleanup(_cleanRepoClone)
     tests.append(test)
 
     return tests
