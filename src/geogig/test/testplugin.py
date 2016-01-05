@@ -5,9 +5,10 @@ from geogig import config
 import shutil
 import tempfile
 from qgis.core import *
-from geogig.tools.layertracking import getTrackingInfo, removedTrackedLayer
+from geogig.tools.layertracking import getTrackingInfo, removeTrackedLayer
 from geogig.gui.pyqtconnectordecorator import PyQtConnectorDecorator
 from geogigpy.repo import Repository
+from tools.exporter import exportFullRepo
 
 # Tests for the QGIS Tester plugin. To know more see
 # https://github.com/boundlessgeo/qgis-tester-plugin
@@ -39,11 +40,31 @@ def openNavigator(folder):
     _navigatorDialog.show()
 
 def closeNavigatorAndRemoveTempRepoFolder():
+    global _navigatorDialog
     if _navigatorDialog is not None:
         _navigatorDialog.close()
         _navigatorDialog = None
     config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, _oldReposPath)
-    shutil.rmtree(_tempReposPath)
+    shutil.rmtree(_tempReposPath, ignore_errors = True)
+
+def _exportRepoLayers(reposFolder, repoFolder):
+    global _tempReposPath
+    _tempReposPath = os.path.join(tempfile.mkdtemp())
+    tempRepoPath = os.path.join(_tempReposPath, repoFolder)
+    repoPath = os.path.join(os.path.dirname(__file__), "data", "repos", reposFolder, repoFolder)
+    shutil.copytree(repoPath, tempRepoPath)
+    connector = PyQtConnectorDecorator()
+    connector.checkIsAlive()
+    repo =  Repository(tempRepoPath, connector)
+    exportFullRepo(repo)
+    layerPath = os.path.join(tempRepoPath, "points.shp")
+    layer = QgsVectorLayer(layerPath, "points", 'ogr')
+    QgsMapLayerRegistry.instance().addMapLayers([layer], True)
+
+def _cleanRepoClone():
+    qgis.utils.iface.newProject()
+    if _tempReposPath is not None:
+        shutil.rmtree(_tempReposPath, ignore_errors = True)
 
 #TESTS
 
@@ -60,8 +81,11 @@ def _checkLayerInRepo():
     removedTrackedLayer(layer)
 
 def _checkLayerInProject():
+    from qgistester.utils import layerFromName
     layer = layerFromName("points")
     assert layer is not None
+
+
 
 def functionalTests():
     try:
@@ -106,19 +130,20 @@ def functionalTests():
 
     test = Test("Open repository layers in QGIS")
     test.addStep("Open navigator", lambda: openNavigator("pointsrepo"))
-    test.addStep("New project", qgis.utils.iface.addProject)
+    test.addStep("New project", qgis.utils.iface.newProject)
     test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
     test.addStep("Check layer has been added to project", _checkLayerInProject)
     test.setCleanup(closeNavigatorAndRemoveTempRepoFolder)
     tests.append(test)
 
     test = Test("Update repository when there are no changes")
-    test.addStep("Open navigator", lambda: openNavigator("pointsrepo"))
-    test.addStep("Open test data", lambda: openTestProject("points"))
-    test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
-    test.addStep("Check layer has been added to project", _checkLayerInProject)
-
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'\n"
+                 "Verify that the plugin shows that there are no changes to add")
+    test.setCleanup(_cleanRepoClone)
     tests.append(test)
+
     test = Test("Modify geometry and create new version")
     tests.append(test)
     test = Test("Modify attributes and create new version")
