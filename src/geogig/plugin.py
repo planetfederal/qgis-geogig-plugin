@@ -37,13 +37,13 @@ if cmd_folder not in sys.path:
 
 logger = logging.getLogger("geogigpy")
 
-trackers = []
+trackers = {}
 
 def trackLayer(layer):
     global trackers
     if layer.type() == layer.VectorLayer and not layer.isReadOnly():
         tracker = LayerTracker(layer)
-        trackers.append(tracker)
+        trackers[layer] = tracker
         layer.committedFeaturesAdded.connect(tracker._featuresAdded)
         layer.editingStopped.connect(tracker.editingStopped)
         layer.editingStarted.connect(tracker.editingStarted)
@@ -55,6 +55,12 @@ def trackLayer(layer):
         else:
             setAsUntracked(layer)
 
+def layerRemoved(layer):
+    global trackers
+    layer = QgsMapLayerRegistry.instance().mapLayer(layer)
+    setAsUntracked(layer)
+    if layer in trackers:
+        del trackers[layer]
 
 class GeoGigPlugin:
 
@@ -107,6 +113,7 @@ class GeoGigPlugin:
         readTrackedLayers()
 
         QgsMapLayerRegistry.instance().layerWasAdded.connect(trackLayer)
+        QgsMapLayerRegistry.instance().layerRemoved.connect(layerRemoved)
 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/ui/resources/versio-16.png")
         self.explorerAction = QtGui.QAction(icon, "GeoGig Navigator", self.iface.mainWindow())
