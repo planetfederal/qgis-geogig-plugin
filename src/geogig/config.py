@@ -32,8 +32,6 @@ generalParams = [
                  (AUTO_ADD_ID, "Automatically add 'geogigid' field without asking", False, TYPE_BOOL, lambda x: True),
                  (GATEWAY_PORT, "Port for GeoGig gateway", 25333, TYPE_NUMBER, lambda x: int(x) > 0),
                  (USE_THREAD, "Run operations on a separate thread", False, TYPE_BOOL, lambda x: True),
-                 (USE_SMART_UPDATE, "Use Smart Update mechanism (experimental)", False, TYPE_BOOL, lambda x: True),
-                 (AUTO_COMMIT, "Automatically create new version after editing tracked layer", False, TYPE_BOOL, lambda x: True),
                  (USE_MAIN_MENUBAR, "Put GeoGig menus in main menu bar (requires restart)", True, TYPE_BOOL, lambda x: True),
                  (REPOS_FOLDER, "Base folder for repositories", "", TYPE_FOLDER, checkFolder),
                  (TIMEOUT, "Number of retries before timeout", 10, TYPE_NUMBER, lambda x: int(x) > 0)]

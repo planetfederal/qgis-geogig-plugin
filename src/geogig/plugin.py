@@ -29,7 +29,7 @@ from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from layeractions import setAsTracked, setAsUntracked
-from PyQt4 import QtCore, QtGui
+from PyQt4 import QtGui
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
@@ -39,21 +39,14 @@ logger = logging.getLogger("geogigpy")
 
 trackers = []
 
-
 def trackLayer(layer):
     global trackers
     if layer.type() == layer.VectorLayer and not layer.isReadOnly():
         tracker = LayerTracker(layer)
         trackers.append(tracker)
-        layer.featureDeleted.connect(tracker.featureDeleted)
         layer.committedFeaturesAdded.connect(tracker._featuresAdded)
-        QtCore.QObject.connect(layer, QtCore.SIGNAL("geometryChanged(QgsFeatureId, QgsGeometry&)"), tracker._geomChanged)
-        layer.attributeValueChanged.connect(tracker._attributeValueChanged)
-        layer.attributeAdded.connect(tracker.featureTypeChanged)
-        layer.attributeDeleted.connect(tracker.featureTypeChanged)
         layer.editingStopped.connect(tracker.editingStopped)
         layer.editingStarted.connect(tracker.editingStarted)
-        layer.beforeRollBack.connect(tracker.beforeRollBack)
 
         setIdEditWidget(layer)
 
