@@ -70,8 +70,7 @@ class NavigatorDialog(QtGui.QDialog):
         self.ui.tabWidget.currentChanged.connect(self.tabChanged)
         self.ui.repoTree.customContextMenuRequested.connect(self.showRepoTreePopupMenu)
         self.ui.repoDescription.setOpenLinks(False)
-        self.connect(self.ui.repoDescription, QtCore.SIGNAL("anchorClicked(const QUrl&)"),
-                     self.descriptionLinkClicked)
+        self.ui.repoDescription.anchorClicked.connect(self.descriptionLinkClicked)
         self.ui.repoTree.setFocusPolicy(QtCore.Qt.NoFocus)
 
         with open(resourceFile("repodescription.css")) as f:

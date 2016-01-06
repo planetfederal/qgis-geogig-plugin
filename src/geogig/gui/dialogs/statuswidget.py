@@ -35,7 +35,7 @@ class StatusWidget(QtGui.QWidget):
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/icon/sync-repo.png"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         self.setLayout(self.layout)
-        self.label.connect(self.label, QtCore.SIGNAL("linkActivated(QString)"), self.linkClicked)
+        self.label.linkActivated.connect(self.linkClicked)
         self.updateLabelText()
 
     def linkClicked(self, url):

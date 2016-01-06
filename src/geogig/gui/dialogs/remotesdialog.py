@@ -37,10 +37,12 @@ class RemotesDialog(QtGui.QDialog):
         self.horizontalLayout.addWidget(self.table)
         self.horizontalLayout.addWidget(self.buttonBox)
         self.setLayout(self.horizontalLayout)
-        QObject.connect(self.buttonBox, QtCore.SIGNAL("rejected()"), self.close)
-        QObject.connect(self.editRowButton, QtCore.SIGNAL("clicked()"), self.editRow)
-        QObject.connect(self.addRowButton, QtCore.SIGNAL("clicked()"), self.addRow)
-        QObject.connect(self.removeRowButton, QtCore.SIGNAL("clicked()"), self.removeRow)
+
+        self.buttonBox.rejected.connect(self.close)
+        self.editRowButton.clicked.connect(self.editRow)
+        self.addRowButton.clicked.connect(self.addRow)
+        self.removeRowButton.clicked.connect(self.removeRow)
+
         QtCore.QMetaObject.connectSlotsByName(self)
         self.editRowButton.setEnabled(False)
         self.removeRowButton.setEnabled(False)
@@ -172,8 +174,8 @@ class NewRemoteDialog(QtGui.QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("accepted()"), self.okPressed)
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.cancelPressed)
+        buttonBox.accepted.connect(self.okPressed)
+        buttonBox.rejected.connect(self.cancelPressed)
 
         self.resize(400, 200)
 

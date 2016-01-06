@@ -126,7 +126,7 @@ class TreeSettingItem(QtGui.QTreeWidgetItem):
                 folder =  QtGui.QFileDialog.getExistingDirectory(tree, description, self.value)
                 if folder:
                     self.lineEdit.setText(folder)
-            self.label.connect(self.label, QtCore.SIGNAL("linkActivated(QString)"), edit)
+            self.label.linkActivated.connect(edit)
             w = QtGui.QWidget()
             w.setLayout(layout)
             self.tree.setItemWidget(self, 1, w)

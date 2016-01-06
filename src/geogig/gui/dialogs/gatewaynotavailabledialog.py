@@ -18,7 +18,8 @@ class GatewayNotAvailableDialog(QtGui.QDialog):
             def loadResource(self, type_, name):
                 return None
         self.textBrowser = MyBrowser()
-        self.textBrowser.connect(self.textBrowser, QtCore.SIGNAL("anchorClicked(const QUrl&)"), self.linkClicked)
+        self.textBrowser.anchorClicked.connect(self.linkClicked)
+
         text = '"<html><img src="' + errorIcon + '"/><h3>Cannot initialize the GeoGig engine.</h3>'
         text += ("<p>The GeoGig engine cannot be started or is not responding correctly."
         "Please, retry the GeoGig operation that you were performing.</p>\n"
@@ -31,7 +32,7 @@ class GatewayNotAvailableDialog(QtGui.QDialog):
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
-        self.connect(buttonBox, QtCore.SIGNAL("rejected()"), self.close)
+        buttonBox.rejected.connect(self.close)
 
         self.resize(500, 400)
         self.setWindowTitle("Error connecting to GeoGig")
