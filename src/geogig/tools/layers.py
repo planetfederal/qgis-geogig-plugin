@@ -56,8 +56,7 @@ def setIdEditWidget(layer):
     idx = provider.fieldNameIndex("geogigid")
     if idx != -1:
         layer.setFieldEditable(idx, False)
-        layer.setEditType(idx, QgsVectorLayer.UuidGenerator)
-
+        layer.setEditorWidgetV2(idx, "UuidGenerator")
 
 def addIdField(layer):
     layer.blockSignals(True)
