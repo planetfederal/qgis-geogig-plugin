@@ -28,7 +28,7 @@ from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
-from layeractions import setAsTracked, setAsUntracked
+from layeractions import setAsTracked, setAsUntracked, removeLayerActions
 from PyQt4 import QtGui
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
@@ -57,10 +57,11 @@ def trackLayer(layer):
 
 def layerRemoved(layer):
     global trackers
-    layer = QgsMapLayerRegistry.instance().mapLayer(layer)
-    setAsUntracked(layer)
-    if layer in trackers:
-        del trackers[layer]
+    if QgsMapLayerRegistry is not None:
+        layer = QgsMapLayerRegistry.instance().mapLayer(layer)
+        removeLayerActions(layer)
+        if layer in trackers:
+            del trackers[layer]
 
 class GeoGigPlugin:
 
@@ -93,6 +94,10 @@ class GeoGigPlugin:
 
         config.initConfigParams()
 
+        layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        for layer in layers:
+            if layer not in trackers:
+                trackLayer(layer)
         try:
             from qgistester.tests import addTestModule
             from geogig.test import testplugin
@@ -105,6 +110,9 @@ class GeoGigPlugin:
         self.menu.deleteLater()
         self.toolButton.deleteLater()
         sys.excepthook = self.qgisHook
+        layers = QgsMapLayerRegistry.instance().mapLayers().values()
+        for layer in layers:
+            removeLayerActions(layer)
         killGateway()
         removeNonexistentTrackedLayers()
         deleteTempFolder()

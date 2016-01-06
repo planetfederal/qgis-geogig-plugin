@@ -19,48 +19,37 @@ from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from PyQt4 import QtGui
 
-browseActions = {}
-addActions = {}
-removeActions = {}
-commitActions = {}
-
 def setAsTracked(layer):
-    global browseActions
-    global removeActions
-    global commitActions
-    global addActions
-    if layer in addActions:
-        config.iface.legendInterface().removeLegendLayerAction(addActions[layer])
-        del addActions[layer]
-    browseActions[layer] = QtGui.QAction(u"Browse layer history...", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(browseActions[layer], u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(browseActions[layer], layer)
-    browseActions[layer].triggered.connect(lambda: layerHistory(layer))
-    removeActions[layer] = QtGui.QAction(u"Remove layer from repository", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(removeActions[layer], u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(removeActions[layer], layer)
-    removeActions[layer].triggered.connect(lambda: removeLayer(layer))
-    commitActions[layer] = QtGui.QAction(u"Update repository with this version", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(commitActions[layer], u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(commitActions[layer], layer)
-    commitActions[layer].triggered.connect(lambda: commitLayer(layer))
+    removeLayerActions(layer)
+    browseAction = QtGui.QAction(u"Browse layer history...", config.iface.legendInterface())
+    config.iface.legendInterface().addLegendLayerAction(browseAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
+    config.iface.legendInterface().addLegendLayerActionForLayer(browseAction, layer)
+    browseAction.triggered.connect(lambda: layerHistory(layer))
+    removeAction = QtGui.QAction(u"Remove layer from repository", config.iface.legendInterface())
+    config.iface.legendInterface().addLegendLayerAction(removeAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
+    config.iface.legendInterface().addLegendLayerActionForLayer(removeAction, layer)
+    removeAction.triggered.connect(lambda: removeLayer(layer))
+    commitAction = QtGui.QAction(u"Update repository with this version", config.iface.legendInterface())
+    config.iface.legendInterface().addLegendLayerAction(commitAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
+    config.iface.legendInterface().addLegendLayerActionForLayer(commitAction, layer)
+    commitAction.triggered.connect(lambda: commitLayer(layer))
+    layer.geogigActions = [browseAction, removeAction, commitAction]
 
 def setAsUntracked(layer):
-    global browseActions
-    global removeActions
-    global commitActions
-    global addActions
-    if layer in removeActions:
-        config.iface.legendInterface().removeLegendLayerAction(removeActions[layer])
-        config.iface.legendInterface().removeLegendLayerAction(browseActions[layer])
-        config.iface.legendInterface().removeLegendLayerAction(commitActions[layer])
-        del browseActions[layer]
-        del removeActions[layer]
-        del commitActions[layer]
-    addActions[layer] = QtGui.QAction(u"Add layer to Repository...", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(addActions[layer], u"GeoGig", u"id2", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(addActions[layer], layer)
-    addActions[layer].triggered.connect(lambda: addLayer(layer))
+    removeLayerActions(layer)
+    action = QtGui.QAction(u"Add layer to Repository...", config.iface.legendInterface())
+    config.iface.legendInterface().addLegendLayerAction(action, u"GeoGig", u"id2", QgsMapLayer.VectorLayer, False)
+    config.iface.legendInterface().addLegendLayerActionForLayer(action, layer)
+    action.triggered.connect(lambda: addLayer(layer))
+    layer.geogigActions = [action]
+
+def removeLayerActions(layer):
+    try:
+        for action in layer.geogigActions:
+            config.iface.legendInterface().removeLegendLayerAction(action)
+        layer.geogigActions = []
+    except AttributeError:
+        pass
 
 def _repoForLayer(layer):
     tracking = getTrackingInfo(layer)
