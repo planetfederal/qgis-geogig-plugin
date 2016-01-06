@@ -7,5 +7,5 @@ qgisMinimumVersion=2.6
 author=Victor Olaya
 email=volaya@boundlessgeo.com
 website=www.boundlessgeo.com
-icon=ui/resources/versio-16.png
+icon=ui/resources/geogig-16.png
 class_name=GeoGigPlugin

@@ -5,7 +5,7 @@ from geogig import config
 
 class ConfigDialog(QtGui.QDialog):
 
-    versioIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../../ui/resources/versio-16.png")
+    versioIcon = QtGui.QIcon(os.path.dirname(__file__) + "/../../ui/resources/geogig-16.png")
 
     def __init__(self):
         QtGui.QDialog.__init__(self)
