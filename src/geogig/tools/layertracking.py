@@ -22,25 +22,16 @@ def decoder(jsonobj):
     if 'source' in jsonobj:
         return TrackedLayer(jsonobj['source'],
                             jsonobj['repoFolder'], jsonobj['layername'],
-                            jsonobj['ref'], jsonobj['insync'])
+                            jsonobj['ref'])
     else:
         return jsonobj
 
 class TrackedLayer(object):
-    def __init__(self, source, repoFolder, layername, ref, insync):
+    def __init__(self, source, repoFolder, layername, ref):
         self.repoFolder = repoFolder
         self.layername = layername
         self.ref = ref
         self.source = source
-        self.insync = insync
-
-
-def setInSync(layer, insync):
-    source = _formatSource(layer)
-    for obj in tracked:
-        if obj.source == source:
-            obj.insync = True
-    saveTracked()
 
 
 def setRef(layer, ref):
@@ -135,8 +126,7 @@ def updateTrackedLayers(repo):
     for trackedlayer in tracked:
         if trackedlayer.repoFolder() == repo.url:
             if trackedlayer.layername in repoLayers:
-                #TODO warn if not insync
-                if (not trackedlayer.insync or trackedlayer.ref != head
+                if (trackedlayer.ref != head
                             or not os.path.exists(trackedlayer.source)):
                     repo.exportshp(geogig.HEAD, trackedlayer.layername, trackedlayer.source)
                     try:
@@ -146,7 +136,6 @@ def updateTrackedLayers(repo):
                         repoLayersInProject = True
                     except WrongLayerSourceException:
                         notLoaded.append(trackedlayer)
-                    trackedlayer.insync = True
                     trackedlayer.ref = head
                 else:
                     try:

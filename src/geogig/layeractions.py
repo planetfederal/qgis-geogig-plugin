@@ -115,7 +115,6 @@ def commitLayer(layer):
 
     exported = exportVectorLayer(layer)
     repo.importshp(exported, False, trackedLayer.layername, "geogigid", True)
-    setInSync(layer, True)
 
     unstaged = repo.difftreestats(geogig.HEAD, geogig.WORK_HEAD)
     total = 0
@@ -144,4 +143,3 @@ def commitLayer(layer):
     setRef(layer, headid)
     config.iface.messageBar().pushMessage("Repository correctly updated",
                                               level = QgsMessageBar.INFO, duration = 4)
-    setInSync(layer, True)

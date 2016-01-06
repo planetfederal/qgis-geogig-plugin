@@ -13,9 +13,6 @@ def icon(f):
     return QtGui.QIcon(os.path.join(os.path.dirname(__file__),
                             os.pardir, os.pardir, "ui", "resources", f))
 
-pushIcon = icon("push.png")
-pullIcon = icon("pull.png")
-syncIcon = icon("sync-repo.png")
 conflictIcon = icon("conflicts-found.png")
 
 class StatusWidget(QtGui.QWidget):
@@ -49,47 +46,6 @@ class StatusWidget(QtGui.QWidget):
                 self.repo.repo().addandcommit(self.repo.repo().mergemessage())
                 self.repoChanged.emit()
                 self.updateLabelText()
-
-    def syncRepo(self):
-        self.repo.uploadRepo()
-        self.repoUploaded.emit()
-        self.updateLabelText()
-
-    def pull(self):
-        try:
-            self.repo.repo().pull(geogig.ORIGIN)
-            return True
-        except GeoGigConflictException:
-            QtGui.QMessageBox.warning(self, conflictIcon, 'Edit Conflicts',
-                    "Some of your edits conflict with recent edits in geogig.\n\n"
-                    + "OPTION A - MERGE:\n\n1. Solve your conflicts then\n\n2. Sync your merged version with geogig.\n\n",
-                     + "OPTION B - UNDO: Revert the sync operation to have only your original local edits\n",
-                    QtGui.QMessageBox.Ok)
-            return False;
-        except GeoGigException, e:
-            if "FileNotFound" in unicode(e):
-                raise GeoGigException("Remote repository does not exist.")
-            else:
-                raise e
-
-    def push(self):
-        try:
-            self.repo.repo().push(geogig.ORIGIN)
-        except GeoGigException, e:
-            if "FileNotFound" in unicode(e):
-                raise GeoGigException("Remote repository does not exist.")
-            else:
-                raise e
-
-    def sync(self):
-        if self.pull():
-            updateTrackedLayers(self.repo.repo())
-            self.push()
-            config.iface.messageBar().pushMessage("Repositories have been successfully synchronized.",
-                                                  level = QgsMessageBar.INFO, duration = 4)
-            return True
-        else:
-            return False
 
 
     def updateRepository(self, repo):
