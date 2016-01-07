@@ -28,10 +28,6 @@ repoWatcher = RepoWatcher()
 
 def setAsTracked(layer):
     removeLayerActions(layer)
-    browseAction = QtGui.QAction(u"Browse layer history...", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(browseAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(browseAction, layer)
-    browseAction.triggered.connect(lambda: layerHistory(layer))
     removeAction = QtGui.QAction(u"Remove layer from repository", config.iface.legendInterface())
     config.iface.legendInterface().addLegendLayerAction(removeAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
     config.iface.legendInterface().addLegendLayerActionForLayer(removeAction, layer)
@@ -63,12 +59,6 @@ def _repoForLayer(layer):
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
     return Repository(tracking.repoFolder, connector), tracking.layername
-
-def layerHistory(layer):
-    repo, layername = _repoForLayer(layer)
-    wrapper = RepositoryWrapper(repo.url)
-    dlg = HistoryViewerDialog(wrapper, layername)
-    dlg.exec_()
 
 def addLayer(layer):
     if not layer.source().lower().endswith("shp"):
