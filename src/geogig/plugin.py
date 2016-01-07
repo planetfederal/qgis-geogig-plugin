@@ -30,6 +30,7 @@ from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from layeractions import setAsTracked, setAsUntracked, removeLayerActions
 from PyQt4 import QtGui, QtCore
+from geogig.gui.dialogs.navigatordialog import navigatorInstance
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
@@ -106,6 +107,7 @@ class GeoGigPlugin:
             pass
 
     def unload(self):
+        navigatorInstance.setVisible(False)
         QgsMapLayerRegistry.instance().layerWasAdded.disconnect(trackLayer)
         self.menu.deleteLater()
         self.toolButton.deleteLater()
@@ -124,8 +126,9 @@ class GeoGigPlugin:
         QgsMapLayerRegistry.instance().layerRemoved.connect(layerRemoved)
 
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/ui/resources/geogig-16.png")
-        self.explorerAction = QtGui.QAction(icon, "GeoGig Navigator", self.iface.mainWindow())
-        self.explorerAction.triggered.connect(self.openNavigator)
+        self.explorerAction = navigatorInstance.toggleViewAction()
+        self.explorerAction.setIcon(icon)
+        self.explorerAction.setText("GeoGig Navigator")
         icon = QtGui.QIcon(os.path.dirname(__file__) + "/ui/resources/config.png")
         self.configAction = QtGui.QAction(icon, "GeoGig Settings", self.iface.mainWindow())
         self.configAction.triggered.connect(self.openSettings)
@@ -177,9 +180,7 @@ class GeoGigPlugin:
         #This crashes QGIS, so we comment it out until finding a solution
         #self.mapTool.setAction(self.toolAction)
 
-        self.navigator = NavigatorDialog()
-        self.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.navigator)
-        self.navigator.hide()
+        self.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, navigatorInstance)
 
     def setWarning(self, msg):
         QtGui.QMessageBox.warning(None, 'Could not complete GeoGig command',
@@ -189,13 +190,6 @@ class GeoGigPlugin:
     def setTool(self):
         self.toolAction.setChecked(True)
         self.iface.mapCanvas().setMapTool(self.mapTool)
-
-
-    def openNavigator(self):
-        if self.navigator.isVisible():
-            self.navigator.hide()
-        else:
-            self.navigator.show()
 
 
     def openSettings(self):

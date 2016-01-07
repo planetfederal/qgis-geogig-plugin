@@ -393,8 +393,7 @@ class RepoItem(QtGui.QTreeWidgetItem):
         self.setForeground(1, QtGui.QBrush(QtGui.QColor("#5f6b77")))
         self.setText(1, "Updated " + relativeDate(self.repo.updated))
 
-
-
+navigatorInstance = NavigatorDialog()
 
 
 
