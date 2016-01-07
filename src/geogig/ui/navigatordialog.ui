@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>498</width>
+    <width>442</width>
     <height>908</height>
    </rect>
   </property>
@@ -25,108 +25,53 @@
   <widget class="QWidget" name="dockWidgetContents">
    <layout class="QVBoxLayout" name="verticalLayout_4">
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout">
-      <property name="sizeConstraint">
-       <enum>QLayout::SetMaximumSize</enum>
-      </property>
-      <item>
-       <widget class="QToolButton" name="newRepoButton">
-        <property name="maximumSize">
-         <size>
-          <width>150</width>
-          <height>16777215</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>New Repository</string>
-        </property>
-        <property name="icon">
-         <iconset resource="resources/geogigclient_resources.qrc">
-          <normaloff>:/icon/new-repo.png</normaloff>:/icon/new-repo.png</iconset>
-        </property>
-        <property name="toolButtonStyle">
-         <enum>Qt::ToolButtonTextBesideIcon</enum>
-        </property>
-        <property name="autoRaise">
-         <bool>false</bool>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QWidget" name="filterWidget" native="true">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>100</width>
-          <height>0</height>
-         </size>
-        </property>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <item>
-          <widget class="QToolButton" name="filterButton">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="text">
-            <string>Filter by...</string>
-           </property>
-           <property name="icon">
-            <iconset resource="resources/geogigclient_resources.qrc">
-             <normaloff>:/icon/filter.png</normaloff>:/icon/filter.png</iconset>
-           </property>
-           <property name="toolButtonStyle">
-            <enum>Qt::ToolButtonTextBesideIcon</enum>
-           </property>
-           <property name="autoRaise">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QToolButton" name="clearFilterButton">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="resources/geogigclient_resources.qrc">
-             <normaloff>:/icon/Close.png</normaloff>:/icon/Close.png</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>10</width>
-             <height>10</height>
-            </size>
-           </property>
-           <property name="autoRaise">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
-      </item>
-     </layout>
+     <widget class="QWidget" name="filterWidget" native="true">
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QToolButton" name="filterButton">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <property name="text">
+          <string>Filter by...</string>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/icon/filter.png</normaloff>:/icon/filter.png</iconset>
+         </property>
+         <property name="toolButtonStyle">
+          <enum>Qt::ToolButtonTextBesideIcon</enum>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QToolButton" name="clearFilterButton">
+         <property name="text">
+          <string/>
+         </property>
+         <property name="icon">
+          <iconset>
+           <normaloff>:/icon/Close.png</normaloff>:/icon/Close.png</iconset>
+         </property>
+         <property name="iconSize">
+          <size>
+           <width>10</width>
+           <height>10</height>
+          </size>
+         </property>
+         <property name="autoRaise">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
     </item>
     <item>
      <widget class="QSplitter" name="splitter">
@@ -156,9 +101,6 @@
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_3">
-           <property name="spacing">
-            <number>6</number>
-           </property>
            <property name="margin">
             <number>0</number>
            </property>
@@ -174,7 +116,7 @@
                </property>
                <property name="minimumSize">
                 <size>
-                 <width>428</width>
+                 <width>0</width>
                  <height>26</height>
                 </size>
                </property>
@@ -186,6 +128,29 @@
                </property>
                <property name="placeholderText">
                 <string> Filter Repositories</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QToolButton" name="newRepoButton">
+               <property name="maximumSize">
+                <size>
+                 <width>150</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string>New Repository</string>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>:/icon/new-repo.png</normaloff>:/icon/new-repo.png</iconset>
+               </property>
+               <property name="toolButtonStyle">
+                <enum>Qt::ToolButtonTextBesideIcon</enum>
+               </property>
+               <property name="autoRaise">
+                <bool>false</bool>
                </property>
               </widget>
              </item>
@@ -289,7 +254,7 @@
            </property>
            <property name="minimumSize">
             <size>
-             <width>450</width>
+             <width>0</width>
              <height>400</height>
             </size>
            </property>
@@ -368,7 +333,7 @@
        <string>Open repository in QGIS</string>
       </property>
       <property name="icon">
-       <iconset resource="resources/geogigclient_resources.qrc">
+       <iconset>
         <normaloff>:/icon/open-repo.png</normaloff>:/icon/open-repo.png</iconset>
       </property>
      </widget>
@@ -376,7 +341,6 @@
    </layout>
   </widget>
  </widget>
- <resources>
- </resources>
+ <resources/>
  <connections/>
 </ui>

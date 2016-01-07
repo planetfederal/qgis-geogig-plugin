@@ -171,7 +171,7 @@ class NavigatorDialog(BASE, WIDGET):
         self.clearFilterButton.setEnabled(False)
 
     def tabChanged(self, i):
-        self.filterButton.setVisible(i != 0)
+        self.filterWidget.setVisible(i != 0)
 
     def filterLayersChanged(self):
         enabled = self.layersFilterDialog.filterText.strip() != "" or self.versionsTree.filterLayers is not None
@@ -188,7 +188,7 @@ class NavigatorDialog(BASE, WIDGET):
         self.descriptionTabButton.setAutoRaise(True)
         self.versionsWidget.setVisible(True)
         self.repoDescription.setVisible(False)
-        self.filterButton.setVisible(True)
+        self.filterWidget.setVisible(True)
         self.filterButton.setEnabled(len(self.repoLayers) != 0)
 
     def showDescriptionTab(self):
@@ -196,7 +196,7 @@ class NavigatorDialog(BASE, WIDGET):
         self.descriptionTabButton.setAutoRaise(False)
         self.versionsWidget.setVisible(False)
         self.repoDescription.setVisible(True)
-        self.filterButton.setVisible(False)
+        self.filterWidget.setVisible(False)
 
     def showRepoTreePopupMenu(self, point):
         item = self.repoTree.selectedItems()[0]
@@ -312,7 +312,7 @@ class NavigatorDialog(BASE, WIDGET):
         def _update():
             if repo != self.currentRepo:
                 self.tabWidget.setCurrentIndex(0)
-            self.filterButton.setVisible(self.tabWidget.currentIndex() != 0)
+            self.filterWidget.setVisible(self.tabWidget.currentIndex() != 0)
             self.tabWidget.setTabEnabled(1, False)
             if repo is None:
                 self.currentRepo = None
