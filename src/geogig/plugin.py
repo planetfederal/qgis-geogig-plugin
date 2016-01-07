@@ -109,6 +109,7 @@ class GeoGigPlugin:
     def unload(self):
         navigatorInstance.setVisible(False)
         QgsMapLayerRegistry.instance().layerWasAdded.disconnect(trackLayer)
+        QgsMapLayerRegistry.instance().layerRemoved.disconnect(layerRemoved)
         self.menu.deleteLater()
         self.toolButton.deleteLater()
         sys.excepthook = self.qgisHook
