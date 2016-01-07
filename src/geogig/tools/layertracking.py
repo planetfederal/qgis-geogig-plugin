@@ -45,7 +45,7 @@ def setRef(layer, ref):
 def addTrackedLayer(source, repoFolder, layername, ref):
     global tracked
     source = _formatSource(source)
-    layer = TrackedLayer(source, repoFolder, layername, ref, True)
+    layer = TrackedLayer(source, repoFolder, layername, ref)
     if layer not in tracked:
         for lay in tracked:
             if lay.source == source:
@@ -67,7 +67,7 @@ def removeTrackedForRepo(repoFolder):
     global tracked
     for i in xrange(len(tracked) - 1, -1, -1):
         layer = tracked[i]
-        if layer.repoFolder() == repoFolder:
+        if layer.repoFolder == repoFolder:
             del tracked[i]
     saveTracked()
 
@@ -124,7 +124,7 @@ def updateTrackedLayers(repo):
     notLoaded = []
     toUnload = []
     for trackedlayer in tracked:
-        if trackedlayer.repoFolder() == repo.url:
+        if trackedlayer.repoFolder == repo.url:
             if trackedlayer.layername in repoLayers:
                 if (trackedlayer.ref != head
                             or not os.path.exists(trackedlayer.source)):
