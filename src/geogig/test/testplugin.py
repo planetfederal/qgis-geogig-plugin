@@ -10,6 +10,9 @@ from geogig.gui.pyqtconnectordecorator import PyQtConnectorDecorator
 from geogigpy.repo import Repository
 from tools.exporter import exportFullRepo
 from geogigpy.commitish import Commitish
+import uuid
+from gui.dialogs.navigatordialog import navigatorInstance
+from PyQt4 import QtCore
 try:
     from qgistester.utils import layerFromName
 except:
@@ -27,12 +30,10 @@ def openTestProject(name):
     if projectFile != QgsProject.instance().fileName():
         qgis.utils.iface.addProject(projectFile)
 
-_navigatorDialog = None
 _oldReposPath = None
 _tempReposPath = None
 
 def _setReposFolder(folder):
-
     global _oldReposPath
     global _tempReposPath
     _oldReposPath = config.getConfigValue(config.GENERAL, config.REPOS_FOLDER)
@@ -46,16 +47,12 @@ def _restoreReposFolder():
     config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, _oldReposPath)
 
 def _openNavigator(folder):
-    global _navigatorDialog
     _setReposFolder(folder)
-    _navigatorDialog = NavigatorDialog()
-    _navigatorDialog.show()
+    action = navigatorInstance.toggleViewAction()
+    if not action.isChecked():
+        config.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, navigatorInstance)
 
-def _closeNavigatorAndRemoveTempRepoFolder():
-    global _navigatorDialog
-    if _navigatorDialog is not None:
-        _navigatorDialog.close()
-        _navigatorDialog = None
+def _removeTempRepoFolder():
     _restoreReposFolder()
     shutil.rmtree(_tempReposPath, ignore_errors = True)
 
@@ -126,11 +123,21 @@ def _checkFeatureModifiedInRepo():
     assert "points/" + geogigid == diffs[0].path
 
 def _addFeature():
-    pass
+    layer = layerFromName("points")
+    feat = QgsFeature(layer.pendingFields())
+    feat.setAttributes(["5", str(uuid.uuid4())])
+    layer.startEditing()
+    feat.setGeometry(QgsGeometry.fromPoint(QgsPoint(123, 456)))
+    layer.addFeatures([feat])
+    layer.commitChanges()
 
 def _checkFeatureAddedInRepo():
-    pass
-
+    connector = PyQtConnectorDecorator()
+    connector.checkIsAlive()
+    repo =  Repository(os.path.join(_tempReposPath, "repo"), connector)
+    diffs = repo.diff("master", Commitish(repo, "master").parent.ref)
+    assert 1 == len(diffs)
+    assert "points/5" == diffs[0].path
 
 def functionalTests():
     try:
@@ -142,25 +149,25 @@ def functionalTests():
     test = Test("Create new repository")
     test.addStep("Open navigator", lambda: _openNavigator("new"))
     test.addStep("Create new repo and verify it is correctly added to the list")
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Create new repository with existing name")
     test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Create new repo named 'testrepo' and verify it cannot be created")
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Change repository title")
     test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Edit repository title and check it is updated in the repo summary")
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Delete repository")
     test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
     test.addStep("Delete repository and check it is removed from the list")
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Add layer to repository")
@@ -168,7 +175,7 @@ def functionalTests():
     test.addStep("Open test data", lambda: openTestProject("points"))
     test.addStep("Add layer 'points' to the 'testrepo' repository")
     test.addStep("Check layer has been added to repo", _checkLayerInRepo)
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
 
@@ -177,7 +184,7 @@ def functionalTests():
     test.addStep("New project", qgis.utils.iface.newProject)
     test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
     test.addStep("Check layer has been added to project", _checkLayerInProject)
-    test.setCleanup(_closeNavigatorAndRemoveTempRepoFolder)
+    test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Update repository when there are no changes")
@@ -208,7 +215,7 @@ def functionalTests():
 
     test = Test("Add layer to repository from context menu")
     test.addStep("Open test data", lambda: openTestProject("points"))
-    test.addStep("Set repos folder", _setReposFolder("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
     test.addStep("Add layer using context menu")
     test.addStep("Check layer has been added to repo", _checkLayerInRepo)
     test.setCleanup(_cleanRepoClone)
