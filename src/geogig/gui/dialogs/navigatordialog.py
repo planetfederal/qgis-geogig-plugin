@@ -1,7 +1,7 @@
 import os
 import logging
 import shutil
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui, QtCore, uic
 from qgis.core import *
 from qgis.gui import *
 from geogig import config
@@ -21,8 +21,8 @@ from geogig.tools.layers import getVectorLayers
 from geogig.gui.dialogs.batchimportdialog import BatchImportDialog
 from geogig.gui.dialogs.syncdialog import SyncDialog
 from geogig.tools.repowrapper import *
-from geogig.ui.navigatordialog import Ui_NavigatorDialog
-from geogig.layeractions import setAsTracked
+from geogig.layeractions import setAsTracked, repoWatcher
+import sys
 
 def icon(f):
     return QtGui.QIcon(os.path.join(os.path.dirname(__file__),
@@ -42,71 +42,87 @@ syncIcon = icon("sync-repo.png")
 
 logger = logging.getLogger("geogigpy")
 
-class NavigatorDialog(QtGui.QDialog):
+# Adding so that our UI files can find resources_rc.py
+sys.path.append(os.path.dirname(__file__))
+
+pluginPath = os.path.split(os.path.dirname(os.path.dirname(__file__)))[0]
+WIDGET, BASE = uic.loadUiType(
+    os.path.join(pluginPath, 'ui', 'navigatorDialog.ui'))
+
+class NavigatorDialog(BASE, WIDGET):
 
     def __init__(self):
-        QtGui.QDialog.__init__(self, config.iface.mainWindow(),
-                               QtCore.Qt.WindowSystemMenuHint | QtCore.Qt.WindowTitleHint)
+        super(NavigatorDialog, self).__init__(None)
 
         self.currentRepo = None
         self.currentRepoName = None
-        self.privateVersioReposItem = None
-        self.sharedVersioReposItem = None
         self.reposItem = None
-        self.localOnlyVersioReposItem = None
-        self.ui = Ui_NavigatorDialog()
-        self.ui.setupUi(self)
+        self.setupUi(self)
 
-        self.ui.filterBox.adjustSize()
-        tabHeight = self.ui.filterBox.height() + self.ui.filterBox.parent().layout().spacing()
-        self.ui.tabWidget.setStyleSheet("QTabWidget::pane {border: 0;} QTabBar::tab { height: %ipx}" % tabHeight);
+        self.setAllowedAreas(QtCore.Qt.RightDockWidgetArea | QtCore.Qt.LeftDockWidgetArea)
 
-        self.ui.newRepoButton.clicked.connect(self.newRepo)
-        self.ui.openButton.clicked.connect(self.openRepo)
-        self.ui.filterBox.textChanged.connect(self.filterRepos)
-        self.ui.repoTree.itemClicked.connect(self.treeItemClicked)
-        self.ui.filterButton.clicked.connect(self.showFilterPopup)
-        self.ui.clearFilterButton.clicked.connect(self.clearFilter)
-        self.ui.tabWidget.currentChanged.connect(self.tabChanged)
-        self.ui.repoTree.customContextMenuRequested.connect(self.showRepoTreePopupMenu)
-        self.ui.repoDescription.setOpenLinks(False)
-        self.ui.repoDescription.anchorClicked.connect(self.descriptionLinkClicked)
-        self.ui.repoTree.setFocusPolicy(QtCore.Qt.NoFocus)
+        self.filterBox.adjustSize()
+        tabHeight = self.filterBox.height() + self.filterBox.parent().layout().spacing()
+        self.tabWidget.setStyleSheet("QTabWidget::pane {border: 0;} QTabBar::tab { height: %ipx}" % tabHeight);
+
+        self.newRepoButton.clicked.connect(self.newRepo)
+        self.openButton.clicked.connect(self.openRepo)
+        self.filterBox.textChanged.connect(self.filterRepos)
+        self.repoTree.itemClicked.connect(self.treeItemClicked)
+        self.filterButton.clicked.connect(self.showFilterPopup)
+        self.clearFilterButton.clicked.connect(self.clearFilter)
+        self.tabWidget.currentChanged.connect(self.tabChanged)
+        self.repoTree.customContextMenuRequested.connect(self.showRepoTreePopupMenu)
+        self.repoDescription.setOpenLinks(False)
+        self.repoDescription.anchorClicked.connect(self.descriptionLinkClicked)
+        self.repoTree.setFocusPolicy(QtCore.Qt.NoFocus)
 
         with open(resourceFile("repodescription.css")) as f:
             sheet = "".join(f.readlines())
-        self.ui.repoDescription.document().setDefaultStyleSheet(sheet)
-        self.ui.repoTree.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
-        self.ui.repoTree.header().setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
+        self.repoDescription.document().setDefaultStyleSheet(sheet)
+        self.repoTree.header().setResizeMode(0, QtGui.QHeaderView.Stretch)
+        self.repoTree.header().setResizeMode(1, QtGui.QHeaderView.ResizeToContents)
 
         self.statusWidget = StatusWidget()
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
         layout.setMargin(0)
         layout.addWidget(self.statusWidget)
-        self.ui.statusWidget.setLayout(layout)
+        self.repoWidget.setLayout(layout)
 
         self.versionsTree = HistoryViewer()
         layout = QtGui.QVBoxLayout()
         layout.setSpacing(0)
         layout.setMargin(0)
         layout.addWidget(self.versionsTree)
-        self.ui.versionsWidget.setLayout(layout)
+        self.versionsWidget.setLayout(layout)
 
-        self.ui.tabWidget.setCornerWidget(self.ui.filterWidget)
-        self.ui.clearFilterButton.setEnabled(False)
+        self.tabWidget.setCornerWidget(self.filterWidget)
+        self.clearFilterButton.setEnabled(False)
 
-        self.versionsTree.headChanged.connect(self.updateBranchLabel)
+        self.versionsTree.headChanged.connect(self.statusWidget.updateLabelText)
         self.versionsTree.repoChanged.connect(self.statusWidget.updateLabelText)
         self.statusWidget.repoChanged.connect(self.versionsTree.updateCurrentBranchItem)
 
         self.lastSelectedRepoItem = None
 
+        def _updateDescription(repo):
+            if self.currentRepo is not None and repo.url == self.currentRepo.repo().url:
+                self.updateCurrentRepoDescription()
+                self.versionsTree.updateCurrentBranchItem()
+                self.statusWidget.updateLabelText()
+        repoWatcher.repoChanged.connect(_updateDescription)
+
+        self.updateNavigator()
+
+    def updateNavigator(self):
         self.fillTree()
         self.updateCurrentRepo(None, None)
 
         self.layersFilterDialog = None
         self.repoLayers = []
+
+
 
     def descriptionLinkClicked(self, url):
         url = url.toString()
@@ -116,17 +132,16 @@ class NavigatorDialog(QtGui.QDialog):
                                               text = self.currentRepo.title)
             if ok:
                 self.currentRepo.title = text
-                self.ui.repoDescription.setText(self.currentRepo.fullDescription)
+                self.updateCurrentRepoDescription()
                 self.lastSelectedRepoItem.refreshTitle()
+
+    def updateCurrentRepoDescription(self):
+        self.repoDescription.setText(self.currentRepo.fullDescription)
 
     def fillTree(self):
         self.updateCurrentRepo(None, None)
-        self.ui.repoTree.clear()
+        self.repoTree.clear()
         self.reposItem = None
-        self.privateVersioReposItem = None
-        self.sharedVersioReposItem = None
-        self.localOnlyVersioReposItem = None
-        self.downloadedPublicVersioReposItem = None
         repos = execute(localRepos)
 
         self.reposItem = OrderedParentItem("Local Repositories", 0)
@@ -135,15 +150,15 @@ class NavigatorDialog(QtGui.QDialog):
             item = RepoItem(repo)
             self.reposItem.addChild(item)
         if self.reposItem.childCount():
-            self.ui.repoTree.addTopLevelItem(self.reposItem)
+            self.repoTree.addTopLevelItem(self.reposItem)
             self.filterRepos()
             self.reposItem.setExpanded(True)
-        self.ui.repoTree.sortItems(0, QtCore.Qt.AscendingOrder)
+        self.repoTree.sortItems(0, QtCore.Qt.AscendingOrder)
 
 
     def showFilterPopup(self):
         if self.layersFilterDialog is None:
-            self.layersFilterDialog = LayersFilterDialog(self.repoLayers, self.ui.filterButton, self)
+            self.layersFilterDialog = LayersFilterDialog(self.repoLayers, self.filterButton, self)
             self.layersFilterDialog.filterLayersChanged.connect(self.filterLayersChanged)
             self.layersFilterDialog.filterTextChanged.connect(self.filterTextChanged)
         self.layersFilterDialog.setFilterLayers(self.versionsTree.filterLayers)
@@ -153,38 +168,38 @@ class NavigatorDialog(QtGui.QDialog):
     def clearFilter(self):
         self.versionsTree.filterLayers = None
         self.versionsTree.filterText = ""
-        self.ui.clearFilterButton.setEnabled(False)
+        self.clearFilterButton.setEnabled(False)
 
     def tabChanged(self, i):
-        self.ui.filterButton.setVisible(i != 0)
+        self.filterButton.setVisible(i != 0)
 
     def filterLayersChanged(self):
         enabled = self.layersFilterDialog.filterText.strip() != "" or self.versionsTree.filterLayers is not None
-        self.ui.clearFilterButton.setEnabled(enabled)
+        self.clearFilterButton.setEnabled(enabled)
         self.versionsTree.filterLayers = self.layersFilterDialog.filterLayers
 
     def filterTextChanged(self):
         enabled = self.layersFilterDialog.filterText.strip() != "" or self.versionsTree.filterLayers is not None
-        self.ui.clearFilterButton.setEnabled(enabled)
+        self.clearFilterButton.setEnabled(enabled)
         self.versionsTree.filterText = self.layersFilterDialog.filterText
 
     def showHistoryTab(self):
-        self.ui.historyTabButton.setAutoRaise(False)
-        self.ui.descriptionTabButton.setAutoRaise(True)
-        self.ui.versionsWidget.setVisible(True)
-        self.ui.repoDescription.setVisible(False)
-        self.ui.filterButton.setVisible(True)
-        self.ui.filterButton.setEnabled(len(self.repoLayers) != 0)
+        self.historyTabButton.setAutoRaise(False)
+        self.descriptionTabButton.setAutoRaise(True)
+        self.versionsWidget.setVisible(True)
+        self.repoDescription.setVisible(False)
+        self.filterButton.setVisible(True)
+        self.filterButton.setEnabled(len(self.repoLayers) != 0)
 
     def showDescriptionTab(self):
-        self.ui.historyTabButton.setAutoRaise(True)
-        self.ui.descriptionTabButton.setAutoRaise(False)
-        self.ui.versionsWidget.setVisible(False)
-        self.ui.repoDescription.setVisible(True)
-        self.ui.filterButton.setVisible(False)
+        self.historyTabButton.setAutoRaise(True)
+        self.descriptionTabButton.setAutoRaise(False)
+        self.versionsWidget.setVisible(False)
+        self.repoDescription.setVisible(True)
+        self.filterButton.setVisible(False)
 
     def showRepoTreePopupMenu(self, point):
-        item = self.ui.repoTree.selectedItems()[0]
+        item = self.repoTree.selectedItems()[0]
         if isinstance(item, RepoItem):
             menu = QtGui.QMenu()
             addAction = QtGui.QAction(addIcon, "Add layer to repository...", None)
@@ -202,7 +217,7 @@ class NavigatorDialog(QtGui.QDialog):
             syncAction = QtGui.QAction(syncIcon, "Open Sync dialog for this repository...", None)
             syncAction.triggered.connect(lambda: self.syncRepo(item))
             menu.addAction(syncAction)
-            point = self.ui.repoTree.mapToGlobal(point)
+            point = self.repoTree.mapToGlobal(point)
             menu.exec_(point)
 
     def syncRepo(self, item):
@@ -212,11 +227,11 @@ class NavigatorDialog(QtGui.QDialog):
             self.statusWidget.updateLabelText()
         if dlg.pulled:
             updateTrackedLayers(item.repo.repo())
-            self.versionsTree.updateCurrentBranchItem
+            self.versionsTree.updateCurrentBranchItem()
             self.statusWidget.updateLabelText()
         elif dlg.pushed:
             self.statusWidget.updateLabelText()
-
+        self.updateCurrentRepoDescription()
 
     def batchImport(self):
         dlg = BatchImportDialog(self, repo = self.currentRepo.repo())
@@ -224,6 +239,7 @@ class NavigatorDialog(QtGui.QDialog):
         if dlg.ok:
             self.versionsTree.updateCurrentBranchItem()
             self.statusWidget.updateLabelText()
+            self.updateCurrentRepoDescription()
 
     def addLayer(self):
         layers = [layer for layer in getVectorLayers()
@@ -235,6 +251,7 @@ class NavigatorDialog(QtGui.QDialog):
             if dlg.ok:
                 self.versionsTree.updateCurrentBranchItem()
                 self.statusWidget.updateLabelText()
+                self.updateCurrentRepoDescription()
                 setAsTracked(dlg.layer)
         else:
             QtGui.QMessageBox.warning(self, 'Cannot add layer',
@@ -250,8 +267,6 @@ class NavigatorDialog(QtGui.QDialog):
         if ret == QtGui.QMessageBox.No:
             return
         self.lastSelectedRepoItem.parent().removeChild(self.lastSelectedRepoItem)
-        if item.parent() == self.sharedVersioReposItem:
-            self.lastSelectedRepoItem.setIcon(0, disabledRepoIcon)
         self.updateCurrentRepo(None, None)
         removeTrackedForRepo(item.repo.path)
         killGateway()
@@ -272,9 +287,9 @@ class NavigatorDialog(QtGui.QDialog):
 
 
     def filterRepos(self):
-        text = self.ui.filterBox.text().strip()
-        for i in xrange(self.ui.repoTree.topLevelItemCount()):
-            parent = self.ui.repoTree.topLevelItem(i)
+        text = self.filterBox.text().strip()
+        for i in xrange(self.repoTree.topLevelItemCount()):
+            parent = self.repoTree.topLevelItem(i)
             for j in xrange(parent.childCount()):
                 item = parent.child(j)
                 itemText = item.text(0)
@@ -290,57 +305,41 @@ class NavigatorDialog(QtGui.QDialog):
         else:
             self.updateCurrentRepo(None, None)
             url = QtCore.QUrl.fromLocalFile(resourceFile("localrepos_offline.html"))
-            self.ui.repoDescription.setSource(url)
+            self.repoDescription.setSource(url)
 
 
     def updateCurrentRepo(self, repo, name):
         def _update():
             if repo != self.currentRepo:
-                self.ui.tabWidget.setCurrentIndex(0)
-            self.ui.filterButton.setVisible(self.ui.tabWidget.currentIndex() != 0)
-            self.ui.tabWidget.setTabEnabled(1, False)
+                self.tabWidget.setCurrentIndex(0)
+            self.filterButton.setVisible(self.tabWidget.currentIndex() != 0)
+            self.tabWidget.setTabEnabled(1, False)
             if repo is None:
                 self.currentRepo = None
                 self.currentRepoName = None
-                self.ui.repoDescription.setText("")
+                self.repoDescription.setText("")
                 self.lastSelectedRepoItem = None
-                self.ui.openButton.setVisible(False)
-                self.ui.repoWidget.setVisible(False)
-                self.ui.downloadButton.setVisible(False)
-                self.ui.placeholderWidget.setVisible(True)
+                self.openButton.setEnabled(False)
             else:
                 self.currentRepo = repo
                 self.currentRepoName = name
-                self.ui.repoDescription.setText(repo.fullDescription)
+                self.repoDescription.setText(repo.fullDescription)
                 self.versionsTree.updateContent(repo.repo())
-                self.ui.openButton.setVisible(True)
-                self.ui.downloadButton.setVisible(False)
-                self.updateBranchLabel()
-                self.ui.repoWidget.setVisible(True)
-                self.ui.placeholderWidget.setVisible(False)
+                self.openButton.setEnabled(True)
                 self.repoLayers = [tree.path for tree in self.currentRepo.repo().trees]
                 self.versionsTree.filterLayers = None
                 if self.layersFilterDialog is not None:
                     self.layersFilterDialog.setLayers(self.repoLayers)
-                self.ui.tabWidget.setTabEnabled(1, True)
+                self.tabWidget.setTabEnabled(1, True)
 
             self.statusWidget.updateRepository(repo)
-            self.ui.downloadButton.setFixedHeight(self.ui.statusWidget.height())
-            self.ui.repoWidget.setFixedHeight(self.ui.statusWidget.height())
-            self.ui.placeholderWidget.setFixedHeight(self.ui.statusWidget.height())
         try:
-            self.ui.repoTree.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
-            self.ui.repoTree.blockSignals(True)
+            self.repoTree.setSelectionMode(QtGui.QAbstractItemView.NoSelection)
+            self.repoTree.blockSignals(True)
             execute(_update)
         finally:
-            self.ui.repoTree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-            self.ui.repoTree.blockSignals(False)
-
-    def updateBranchLabel(self):
-        self.ui.branchLabel.setText("The current branch is <b>%s</b>" % self.versionsTree.head)
-        self.ui.repoDescription.setText(self.currentRepo.fullDescription)
-
-
+            self.repoTree.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
+            self.repoTree.blockSignals(False)
 
     def newRepo(self, name = None):
         title, ok = QtGui.QInputDialog.getText(self, 'Name',
@@ -359,9 +358,9 @@ class NavigatorDialog(QtGui.QDialog):
                 return
 
             self.reposItem.addChild(item)
-            self.ui.repoTree.addTopLevelItem(self.reposItem)
+            self.repoTree.addTopLevelItem(self.reposItem)
             self.reposItem.setExpanded(True)
-            self.ui.repoTree.sortItems(0, QtCore.Qt.AscendingOrder)
+            self.repoTree.sortItems(0, QtCore.Qt.AscendingOrder)
             return repo
 
 

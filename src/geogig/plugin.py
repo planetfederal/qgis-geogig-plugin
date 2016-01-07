@@ -29,7 +29,7 @@ from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from layeractions import setAsTracked, setAsUntracked, removeLayerActions
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 
 cmd_folder = os.path.split(inspect.getfile(inspect.currentframe()))[0]
 if cmd_folder not in sys.path:
@@ -177,6 +177,10 @@ class GeoGigPlugin:
         #This crashes QGIS, so we comment it out until finding a solution
         #self.mapTool.setAction(self.toolAction)
 
+        self.navigator = NavigatorDialog()
+        self.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, self.navigator)
+        self.navigator.hide()
+
     def setWarning(self, msg):
         QtGui.QMessageBox.warning(None, 'Could not complete GeoGig command',
                             msg,
@@ -188,8 +192,10 @@ class GeoGigPlugin:
 
 
     def openNavigator(self):
-        dlg = NavigatorDialog()
-        dlg.exec_()
+        if self.navigator.isVisible():
+            self.navigator.hide()
+        else:
+            self.navigator.show()
 
 
     def openSettings(self):

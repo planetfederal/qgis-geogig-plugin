@@ -18,6 +18,13 @@ from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from PyQt4 import QtGui
+from PyQt4.QtCore import pyqtSignal, QObject
+
+class RepoWatcher(QObject):
+
+    repoChanged = pyqtSignal(object)
+
+repoWatcher = RepoWatcher()
 
 def setAsTracked(layer):
     removeLayerActions(layer)
@@ -77,6 +84,8 @@ def addLayer(layer):
             config.iface.messageBar().pushMessage("Layer correctly added to repository",
                                               level = QgsMessageBar.INFO, duration = 4)
             setAsTracked(layer)
+            repoWatcher.repoChanged.emit(dlg.repo)
+
     else:
         QtGui.QMessageBox.warning(config.iface.mainWindow(), 'Cannot add layer',
                 "No local repositories were found",
@@ -96,6 +105,7 @@ def removeLayer(layer):
     config.iface.messageBar().pushMessage("Layer correctly removed from repository",
                                            level = QgsMessageBar.INFO, duration = 4)
     setAsUntracked(layer)
+    repoWatcher.repoChanged.emit(repo)
 
 def commitLayer(layer):
     trackedLayer = getTrackingInfo(layer)
@@ -143,3 +153,4 @@ def commitLayer(layer):
     setRef(layer, headid)
     config.iface.messageBar().pushMessage("Repository correctly updated",
                                               level = QgsMessageBar.INFO, duration = 4)
+    repoWatcher.repoChanged.emit(repo)
