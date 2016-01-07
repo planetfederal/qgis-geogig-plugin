@@ -196,7 +196,7 @@ class GeoGigPlugin:
     def openSettings(self):
         dlg = ConfigDialog()
         dlg.exec_()
-
+        navigatorInstance.updateNavigator()
 
 
 
