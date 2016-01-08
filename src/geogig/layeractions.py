@@ -36,7 +36,7 @@ def setAsTracked(layer):
     config.iface.legendInterface().addLegendLayerAction(commitAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
     config.iface.legendInterface().addLegendLayerActionForLayer(commitAction, layer)
     commitAction.triggered.connect(lambda: commitLayer(layer))
-    layer.geogigActions = [browseAction, removeAction, commitAction]
+    layer.geogigActions = [removeAction, commitAction]
 
 def setAsUntracked(layer):
     removeLayerActions(layer)
