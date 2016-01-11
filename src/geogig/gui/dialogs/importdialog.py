@@ -109,14 +109,21 @@ class ImportDialog(QtGui.QDialog):
         try:
             self.repo.commit(message)
         except UnconfiguredUserException, e:
-            configdlg = UserConfigDialog(config.iface.mainWindow())
-            configdlg.exec_()
-            if configdlg.user is not None:
-                self.repo.config(geogig.USER_NAME, configdlg.user)
-                self.repo.config(geogig.USER_EMAIL, configdlg.email)
-                self.repo.commit(message)
-            else:
-                return
+            user = config.getConfigValue(config.GENERAL, config.USERNAME)
+            email = config.getConfigValue(config.GENERAL, config.EMAIL)
+            if not (user and email):
+                configdlg = UserConfigDialog(config.iface.mainWindow())
+                configdlg.exec_()
+                if configdlg.user is not None:
+                    user = configdlg.user
+                    email = configdlg.email
+                    config.setConfigValue(config.GENERAL, config.USERNAME, user)
+                    config.setConfigValue(config.GENERAL, config.EMAIL, email)
+                else:
+                    return
+            self.repo.config(geogig.USER_NAME, user, True)
+            self.repo.config(geogig.USER_EMAIL, email, True)
+            self.repo.commit(message)
         except GeoGigException, e:
             if "Nothing to commit" in e.args[0]:
                     config.iface.messageBar().pushMessage("No version has been created. Repository is already up to date",

@@ -130,15 +130,21 @@ def commitLayer(layer):
     try:
         repo.addandcommit(dlg.getMessage())
     except UnconfiguredUserException, e:
-        #It should not raise this exception unless config file has been manually deleted
-        configdlg = UserConfigDialog(config.iface.mainWindow())
-        configdlg.exec_()
-        if configdlg.user is not None:
-            repo.config(geogig.USER_NAME, configdlg.user)
-            repo.config(geogig.USER_EMAIL, configdlg.email)
-            repo.commit(dlg.getMessage())
-        else:
-            return
+        user = config.getConfigValue(config.GENERAL, config.USERNAME)
+        email = config.getConfigValue(config.GENERAL, config.EMAIL)
+        if not (user and email):
+            configdlg = UserConfigDialog(config.iface.mainWindow())
+            configdlg.exec_()
+            if configdlg.user is not None:
+                user = configdlg.user
+                email = configdlg.email
+                config.setConfigValue(config.GENERAL, config.USERNAME, user)
+                config.setConfigValue(config.GENERAL, config.EMAIL, email)
+            else:
+                return
+        repo.config(geogig.USER_NAME, user, True)
+        repo.config(geogig.USER_EMAIL, email, True)
+        repo.commit(dlg.getMessage())
     headid = repo.revparse(geogig.HEAD)
     setRef(layer, headid)
     config.iface.messageBar().pushMessage("Repository correctly updated",

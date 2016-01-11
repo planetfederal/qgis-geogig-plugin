@@ -26,7 +26,6 @@ from geogig.gui.dialogs.historyviewer import HistoryViewerDialog
 from geogig.gui.executor import execute
 from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
-from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
 from geogig.tools.exporter import exportVectorLayer
 from layeractions import setAsTracked, setAsUntracked, removeLayerActions
 from PyQt4 import QtGui, QtCore
