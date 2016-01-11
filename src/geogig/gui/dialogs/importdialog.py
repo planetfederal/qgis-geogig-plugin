@@ -5,7 +5,7 @@ from geogig.tools.layers import *
 import os
 from geogigpy.geogigexception import GeoGigException, UnconfiguredUserException
 from geogigpy import geogig
-from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
+from geogig.gui.dialogs.userconfigdialog import configureUser
 from geogig.tools.exporter import exportVectorLayer
 from geogig.tools.layertracking import addTrackedLayer, isTracked
 from geogig.gui.dialogs.addgeogigiddialog import AddGeogigIdDialog
@@ -109,20 +109,7 @@ class ImportDialog(QtGui.QDialog):
         try:
             self.repo.commit(message)
         except UnconfiguredUserException, e:
-            user = config.getConfigValue(config.GENERAL, config.USERNAME)
-            email = config.getConfigValue(config.GENERAL, config.EMAIL)
-            if not (user and email):
-                configdlg = UserConfigDialog(config.iface.mainWindow())
-                configdlg.exec_()
-                if configdlg.user is not None:
-                    user = configdlg.user
-                    email = configdlg.email
-                    config.setConfigValue(config.GENERAL, config.USERNAME, user)
-                    config.setConfigValue(config.GENERAL, config.EMAIL, email)
-                else:
-                    return
-            self.repo.config(geogig.USER_NAME, user, True)
-            self.repo.config(geogig.USER_EMAIL, email, True)
+            configureUser()
             self.repo.commit(message)
         except GeoGigException, e:
             if "Nothing to commit" in e.args[0]:

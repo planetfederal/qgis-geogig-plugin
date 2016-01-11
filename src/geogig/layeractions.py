@@ -1,3 +1,4 @@
+
 from geogig import config
 from qgis.core import *
 from qgis.gui import *
@@ -15,7 +16,7 @@ from geogig.gui.dialogs.historyviewer import HistoryViewerDialog
 from geogig.gui.executor import execute
 from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
-from geogig.gui.dialogs.userconfigdialog import UserConfigDialog
+from geogig.gui.dialogs.userconfigdialog import configureUser
 from geogig.tools.exporter import exportVectorLayer
 from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignal, QObject
@@ -90,7 +91,12 @@ def removeLayer(layer):
         return
     repo, layername = _repoForLayer(layer)
     repo.removetrees([layername])
-    repo.addandcommit("Removed layer '%s'" % layername)
+    try:
+        repo.addandcommit("Removed layer '%s'" % layername)
+    except UnconfiguredUserException, e:
+        configureUser()
+        repo.addandcommit("Removed layer '%s'" % layername)
+
     removeTrackedLayer(layer)
     config.iface.messageBar().pushMessage("Layer correctly removed from repository",
                                            level = QgsMessageBar.INFO, duration = 4)
