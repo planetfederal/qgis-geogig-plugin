@@ -202,10 +202,9 @@ class HistoryViewer(QtGui.QTreeWidget):
             updateTrackedLayers(self.repo)
             self.updateCurrentBranchItem()
         except GeoGigConflictException:
-            QtGui.QMessageBox.warning(self, 'Edit Conflicts',
+            QtGui.QMessageBox.warning(self, 'Merge Conflicts',
                     "Some of your edits in the current branch conflict with edits in the merged branch.\n\n"
-                    + "OPTION A - MERGE:\n\n1. Solve your conflicts\n"
-                     + "OPTION B - UNDO: Revert the merge operation to have only your current branch edits\n",
+                    + "Solve conflicts or revert the merge operation to have only your current branch edits.",
                     QtGui.QMessageBox.Ok)
         finally:
             self.repoChanged.emit()

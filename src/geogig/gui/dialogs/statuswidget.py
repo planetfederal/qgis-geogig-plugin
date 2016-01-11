@@ -43,7 +43,7 @@ class StatusWidget(QtGui.QLabel):
             if conflicts:
                 self.setText('<font color="red"> There are %i conflicted features. </font> &nbsp; '
                     '<a style="text-decoration: none; font-weight: bold; color:#3498db" href="solve">Solve conflicts</a> &nbsp;  '
-                    '<a style="text-decoration: none; font-weight: bold; color:#3498db" href="abort">Revert edits</a>'
+                    '<a style="text-decoration: none; font-weight: bold; color:#3498db" href="abort">Abort merge</a>'
                     % conflicts)
             else:
                 self.setText("The current branch is <b>%s</b>" % self.repo.repo().head)
