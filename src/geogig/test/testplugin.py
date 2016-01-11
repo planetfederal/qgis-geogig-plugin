@@ -8,6 +8,7 @@ from qgis.core import *
 from geogig.tools.layertracking import getTrackingInfo, removeTrackedLayer
 from geogig.gui.pyqtconnectordecorator import PyQtConnectorDecorator
 from geogigpy.repo import Repository
+from geogigpy import geogig
 from tools.exporter import exportFullRepo
 from geogigpy.commitish import Commitish
 import uuid
@@ -88,7 +89,7 @@ def _checkLayerInRepo():
     repo =  Repository(tracking.repoFolder, connector)
     layers = [tree.path for tree in repo.trees]
     assert "points" in layers
-    removedTrackedLayer(layer)
+    removeTrackedLayer(layer)
 
 def _checkLayerNotInRepo():
     layer = layerFromName("points")
@@ -152,6 +153,27 @@ def _checkLayerHasTrackedContextMenus():
     assert 2 == len(actions)
     assert "remove" in actions[0].text().lower()
 
+def _removeUserConfig():
+    global _oldUserName
+    global _configContent
+    configFile = os.path.join(os.path.expanduser("~"), ".geogigconfig")
+    if os.path.exists(configFile):
+        with open(configFile) as f:
+            _configContent = "".join(f.readlines())
+        os.unlink(configFile)
+    else:
+        _configContent = ""
+    _oldUserName = config.getConfigValue(config.GENERAL, config.USERNAME)
+    config.setConfigValue(config.GENERAL, config.USERNAME, "")
+
+
+def _restoreUserConfig():
+    config.setConfigValue(config.GENERAL, config.USERNAME, _oldUserName)
+    configFile = os.path.join(os.path.expanduser("~"), ".geogigconfig")
+    with open(configFile, "w") as f:
+        f.write(_configContent)
+    _restoreReposFolder()
+
 def functionalTests():
     try:
         from qgistester.test import Test
@@ -199,6 +221,14 @@ def functionalTests():
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
+    test = Test("Add layer with unconfigured user")
+    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Open test data", lambda: openTestProject("points"))
+    test.addStep("Remove user configuration", _removeUserConfig)
+    test.addStep("Add layer 'points' to the 'testrepo' repository")
+    test.addStep("Check layer has been added to repo", _checkLayerInRepo)
+    test.setCleanup(_restoreUserConfig)
+    tests.append(test)
 
     test = Test("Open repository layers in QGIS")
     test.addStep("Open navigator", lambda: _openNavigator("pointsrepo"))
