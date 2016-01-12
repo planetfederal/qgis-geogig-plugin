@@ -59,16 +59,13 @@ def _removeTempRepoFolder():
     shutil.rmtree(_tempReposPath, ignore_errors = True)
 
 def _exportRepoLayers(reposFolder, repoFolder):
-    global _tempReposPath
-    _tempReposPath = os.path.join(tempfile.mkdtemp())
-    tempRepoPath = os.path.join(_tempReposPath, repoFolder)
-    repoPath = os.path.join(os.path.dirname(__file__), "data", "repos", reposFolder, repoFolder)
-    shutil.copytree(repoPath, tempRepoPath)
+    _setReposFolder(reposFolder)
+    repoPath = os.path.join(_tempReposPath, "repos", repoFolder)
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    repo =  Repository(tempRepoPath, connector)
+    repo =  Repository(repoPath, connector)
     exportFullRepo(repo)
-    layerPath = os.path.join(tempRepoPath, "points.shp")
+    layerPath = os.path.join(repoPath, "points.shp")
     layer = QgsVectorLayer(layerPath, "points", 'ogr')
     QgsMapLayerRegistry.instance().addMapLayers([layer], True)
 
@@ -97,7 +94,7 @@ def _checkLayerNotInRepo():
     assert tracking is None
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    repo =  Repository(os.path.join(_tempReposPath, "pointsrepo"), connector)
+    repo =  Repository(os.path.join(_tempReposPath, "repos", "pointsrepo"), connector)
     layers = [tree.path for tree in repo.trees]
     assert "points" not in layers
 
@@ -116,7 +113,7 @@ def _modifyFeature():
 def _checkFeatureModifiedInRepo():
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    repo =  Repository(os.path.join(_tempReposPath, "repo"), connector)
+    repo =  Repository(os.path.join(_tempReposPath, "repos", "repo"), connector)
     diffs = repo.diff("master", Commitish(repo, "master").parent.ref)
     assert 1 == len(diffs)
     layer = layerFromName("points")
@@ -134,12 +131,17 @@ def _addFeature():
     layer.commitChanges()
 
 def _checkFeatureAddedInRepo():
+    layer = layerFromName("points")
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
-    repo =  Repository(os.path.join(_tempReposPath, "repo"), connector)
+    repo =  Repository(os.path.join(_tempReposPath, "repos", "repo"), connector)
     diffs = repo.diff("master", Commitish(repo, "master").parent.ref)
     assert 1 == len(diffs)
-    assert "points/5" == diffs[0].path
+    feature = list(layer.getFeatures())[-1]
+    geogigid = str(feature[1])
+    print geogigid
+    print diffs[0].path
+    assert "points/" + geogigid == diffs[0].path
 
 def _checkLayerHasUntrackedContextMenus():
     layer = layerFromName("points")
@@ -173,6 +175,13 @@ def _restoreUserConfig():
     with open(configFile, "w") as f:
         f.write(_configContent)
     _restoreReposFolder()
+
+def _addRemote():
+    connector = PyQtConnectorDecorator()
+    connector.checkIsAlive()
+    repo =  Repository(os.path.join(_tempReposPath, "repos", "local"), connector)
+    remotePath = os.path.join(_tempReposPath, "remote")
+    repo.addremote("remote", remotePath , "user", "pass")
 
 def functionalTests():
     try:
@@ -331,6 +340,25 @@ def functionalTests():
     test = Test("Delete branch")
     test.addStep("Open navigator", lambda: _openNavigator("twobranches"))
     test.addStep("Delete 'newbranch' and verify the versions tree is updated")
+    test.setCleanup(_removeTempRepoFolder)
+    tests.append(test)
+
+    test = Test("Pull from remote")
+    test.addStep("Open navigator", lambda: _openNavigator("remote"))
+    test.addStep("Add remote", _addRemote)
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("remote", "local"))
+    test.addStep("Sync local repo pulling from remote.\n"
+                 "Verify the repo and the map are correctly updated.")
+    test.setCleanup(_removeTempRepoFolder)
+    tests.append(test)
+
+    test = Test("Pull from remote with conflicts")
+    test.addStep("Open navigator", lambda: _openNavigator("conflictedremote"))
+    test.addStep("Add remote", _addRemote)
+    test.addStep("New project", qgis.utils.iface.newProject)
+    test.addStep("Sync local repo pulling from remote.\n"
+                 "Verify the conflict is detected.")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
