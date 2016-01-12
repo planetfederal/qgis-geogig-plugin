@@ -180,7 +180,7 @@ def _addRemote():
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
     repo =  Repository(os.path.join(_tempReposPath, "repos", "local"), connector)
-    remotePath = os.path.join(_tempReposPath, "remote")
+    remotePath = os.path.join(_tempReposPath, "repos", "remote")
     repo.addremote("remote", remotePath , "user", "pass")
 
 def functionalTests():
