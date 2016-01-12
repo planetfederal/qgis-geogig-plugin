@@ -73,7 +73,7 @@ class ConfigDialog(QtGui.QDialog):
         item.setText(0, name)
         item.setIcon(0, icon)
         for param in params:
-            paramName = "/Geogig/Settings/" + name + "/" + param[0]
+            paramName = "/GeoGig/Settings/" + name + "/" + param[0]
             subItem = TreeSettingItem(self.tree, item, paramName, *param[1:])
             item.addChild(subItem)
         return item
