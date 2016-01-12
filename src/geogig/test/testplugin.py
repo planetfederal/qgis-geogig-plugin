@@ -47,8 +47,7 @@ def _setReposFolder(folder):
 def _restoreReposFolder():
     config.setConfigValue(config.GENERAL, config.REPOS_FOLDER, _oldReposPath)
 
-def _openNavigator(folder):
-    _setReposFolder(folder)
+def _openNavigator():
     action = navigatorInstance.toggleViewAction()
     if not action.isChecked():
         config.iface.addDockWidget(QtCore.Qt.RightDockWidgetArea, navigatorInstance)
@@ -58,8 +57,7 @@ def _removeTempRepoFolder():
     _restoreReposFolder()
     shutil.rmtree(_tempReposPath, ignore_errors = True)
 
-def _exportRepoLayers(reposFolder, repoFolder):
-    _setReposFolder(reposFolder)
+def _exportRepoLayers(repoFolder):
     repoPath = os.path.join(_tempReposPath, "repos", repoFolder)
     connector = PyQtConnectorDecorator()
     connector.checkIsAlive()
@@ -191,13 +189,15 @@ def functionalTests():
 
     tests = []
     test = Test("Create new repository")
-    test.addStep("Open navigator", lambda: _openNavigator("new"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("new"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Create new repo and verify it is correctly added to the list")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Add layer without repo")
     test.addStep("Set repos folder", lambda: _setReposFolder("new"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Open test data", lambda: openTestProject("points"))
     test.addStep("Right click on the layer and try to add it to a repository.\n"
                  "Verify that it shows a warning because there are no repositories defined.")
@@ -205,25 +205,29 @@ def functionalTests():
     tests.append(test)
 
     test = Test("Create new repository with existing name")
-    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Create new repo named 'testrepo' and verify it cannot be created")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Change repository title")
-    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Edit repository title and check it is updated in the repo summary")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Delete repository")
-    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Delete repository and check it is removed from the list")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Add layer to repository")
-    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Open test data", lambda: openTestProject("points"))
     test.addStep("Add layer 'points' to the 'testrepo' repository")
     test.addStep("Check layer has been added to repo", _checkLayerInRepo)
@@ -231,7 +235,8 @@ def functionalTests():
     tests.append(test)
 
     test = Test("Add layer with unconfigured user")
-    test.addStep("Open navigator", lambda: _openNavigator("emptyrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("emptyrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Open test data", lambda: openTestProject("points"))
     test.addStep("Remove user configuration", _removeUserConfig)
     test.addStep("Add layer 'points' to the 'testrepo' repository")
@@ -240,7 +245,8 @@ def functionalTests():
     tests.append(test)
 
     test = Test("Open repository layers in QGIS")
-    test.addStep("Open navigator", lambda: _openNavigator("pointsrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("New project", qgis.utils.iface.newProject)
     test.addStep("Select the 'testrepo' repository and click on 'Open repository in QGIS'")
     test.addStep("Check layer has been added to project", _checkLayerInProject)
@@ -249,7 +255,8 @@ def functionalTests():
 
     test = Test("Update repository when there are no changes")
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'\n"
                  "Verify that the plugin shows that there are no changes to add")
     test.setCleanup(_cleanRepoClone)
@@ -257,7 +264,8 @@ def functionalTests():
 
     test = Test("Modify feature and create new version")
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Edit layer", _modifyFeature)
     test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'")
     test.addStep("Check layer has been updated", _checkFeatureModifiedInRepo)
@@ -266,7 +274,8 @@ def functionalTests():
 
     test = Test("Add feature and create new version")
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Edit layer", _addFeature)
     test.addStep("Right click on 'points' layer and select 'GeoGig/Update repository with this version'")
     test.addStep("Check layer has been updated", _checkFeatureAddedInRepo)
@@ -284,7 +293,8 @@ def functionalTests():
 
     test = Test("Remove layer from repository")
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("pointsrepo", "repo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Right click on 'points' layer and select 'GeoGig/Remove layer from repository'")
     test.addStep("Check layer has been correctly deleted", _checkLayerNotInRepo)
     test.addStep("Check layer context menus", _checkLayerHasUntrackedContextMenus)
@@ -292,69 +302,78 @@ def functionalTests():
     tests.append(test)
 
     test = Test("Show version characteristics")
-    test.addStep("Open navigator", lambda: _openNavigator("pointsrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Right click on repo's only commit and select 'Show detailed description'\nVerify description is correctly shown")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Create new branch")
-    test.addStep("Open navigator", lambda: _openNavigator("pointsrepo"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("pointsrepo"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Create new branch at current branch's HEAD and verify it is added to history tree")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Switch branch")
-    test.addStep("Open navigator", lambda: _openNavigator("twobranches"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("twobranches"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("twobranches", "repo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Switch to 'newbranch' branch and verify the map is updated")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Merge branch")
-    test.addStep("Open navigator", lambda: _openNavigator("twobranches"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("twobranches"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("twobranches", "repo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Merge 'newbranch' into 'master' and verify the map and versions tree are updated")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Merge conflicted  branch")
-    test.addStep("Open navigator", lambda: _openNavigator("conflicted"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("conflicted"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("conflicted", "repo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Merge 'conflicted' into 'master' and solve the conflicts.\n"
                  "Verify the merge is correctly finished and the tree and map are updated")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Merge conflicted  branch and abort")
-    test.addStep("Open navigator", lambda: _openNavigator("conflicted"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("conflicted"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("conflicted", "repo"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("repo"))
     test.addStep("Merge 'conflicted' into 'master' and abort.\n"
                  "Verify the merge is correctly aborted.")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Delete branch")
-    test.addStep("Open navigator", lambda: _openNavigator("twobranches"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("twobranches"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Delete 'newbranch' and verify the versions tree is updated")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Pull from remote")
-    test.addStep("Open navigator", lambda: _openNavigator("remote"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("remote"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Add remote", _addRemote)
     test.addStep("New project", qgis.utils.iface.newProject)
-    test.addStep("Export repo layers", lambda:_exportRepoLayers("remote", "local"))
+    test.addStep("Export repo layers", lambda:_exportRepoLayers("local"))
     test.addStep("Sync local repo pulling from remote.\n"
                  "Verify the repo and the map are correctly updated.")
     test.setCleanup(_removeTempRepoFolder)
     tests.append(test)
 
     test = Test("Pull from remote with conflicts")
-    test.addStep("Open navigator", lambda: _openNavigator("conflictedremote"))
+    test.addStep("Set repos folder", lambda: _setReposFolder("conflictedremote"))
+    test.addStep("Open navigator", _openNavigator)
     test.addStep("Add remote", _addRemote)
     test.addStep("New project", qgis.utils.iface.newProject)
     test.addStep("Sync local repo pulling from remote.\n"
