@@ -8,7 +8,7 @@ from geogig import config
 from geogig.gui.executor import execute
 from geogig.tools.exporter import loadRepoExportedLayers, exportFullRepo
 from geogig.tools.layertracking import removeTrackedForRepo, isTracked, \
-    updateTrackedLayers
+    updateTrackedLayers, getTrackedPathsForRepo
 from geogigpy import geogig
 from geogigpy.geogigexception import GeoGigException, GeoGigConflictException
 from geogig.tools.utils import *
@@ -21,7 +21,7 @@ from geogig.tools.layers import getVectorLayers
 from geogig.gui.dialogs.batchimportdialog import BatchImportDialog
 from geogig.gui.dialogs.syncdialog import SyncDialog
 from geogig.tools.repowrapper import *
-from geogig.layeractions import setAsTracked, repoWatcher
+from geogig.layeractions import setAsTracked, repoWatcher, setAsUntracked
 import sys
 
 def icon(f):
@@ -268,6 +268,11 @@ class NavigatorDialog(BASE, WIDGET):
             return
         self.lastSelectedRepoItem.parent().removeChild(self.lastSelectedRepoItem)
         self.updateCurrentRepo(None, None)
+        tracked = getTrackedPathsForRepo(item.repo.repo())
+        layers = getVectorLayers()
+        for layer in layers:
+            if layer.source() in tracked:
+                setAsUntracked(layer)
         removeTrackedForRepo(item.repo.path)
         killGateway()
         try:
