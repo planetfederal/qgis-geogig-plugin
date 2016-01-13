@@ -1,5 +1,8 @@
 import os
 from PyQt4 import QtCore
+from geogigpy import geogig
+from geogigpy.py4jconnector import Py4JCLIConnector
+
 iface = None
 explorer = None
 
@@ -29,6 +32,20 @@ def checkFolder(f):
     except:
         return False
 
+def setEmail(email):
+    email = email.strip()
+    if email:
+        con = Py4JCLIConnector()
+        con.configglobal(geogig.USER_EMAIL, email)
+    return True
+
+def setUsername(name):
+    name = name.strip()
+    if name:
+        con = Py4JCLIConnector()
+        con.configglobal(geogig.USER_NAME, name)
+    return True
+
 generalParams = [
                  (AUTO_ADD_ID, "Automatically add 'geogigid' field without asking", False, TYPE_BOOL, lambda x: True),
                  (GATEWAY_PORT, "Port for GeoGig gateway", 25333, TYPE_NUMBER, lambda x: int(x) > 0),
@@ -36,8 +53,8 @@ generalParams = [
                  (USE_MAIN_MENUBAR, "Put GeoGig menus in main menu bar (requires restart)", True, TYPE_BOOL, lambda x: True),
                  (REPOS_FOLDER, "Base folder for repositories", "", TYPE_FOLDER, checkFolder),
                  (TIMEOUT, "Number of retries before timeout", 10, TYPE_NUMBER, lambda x: int(x) > 0),
-                 (USERNAME, "User name", "", TYPE_STRING, lambda x: True),
-                 (EMAIL, "User email", "", TYPE_STRING, lambda x: True)]
+                 (USERNAME, "User name", "", TYPE_STRING, lambda x: setUsername(x)),
+                 (EMAIL, "User email", "", TYPE_STRING, lambda x: setEmail(x))]
 
 def initConfigParams():
     folder = getConfigValue(GENERAL, REPOS_FOLDER)
