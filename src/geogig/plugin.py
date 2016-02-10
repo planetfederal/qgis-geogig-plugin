@@ -1,6 +1,7 @@
 import os
 import sys
 import inspect
+import sqlite3
 from geogig import config
 import traceback
 import logging
@@ -40,10 +41,15 @@ logger = logging.getLogger("geogigpy")
 trackers = {}
 
 def isGeoGigGeopackage(layer):
-    if not layer.source().split("|")[0].endswith(".gpkg"):
+    filename = layer.source().split("|")[0]
+    if not filename.endswith(".geopkg"):
         return False
-    return True
-    #TODO
+    con = sqlite3.connect(filename)
+    cursor = con.cursor()
+    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+    tables = [t[0] for t in cursor.fetchall()]
+    return "geogig_audited_tables" in tables
+
 
 def trackLayer(layer):
     global trackers
