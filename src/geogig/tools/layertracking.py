@@ -97,7 +97,7 @@ def readTrackedLayers():
     except KeyError:
         pass
 
-def isTracked(layer):
+def isRepoLayer(layer):
     return getTrackingInfo(layer) is not None
 
 def getTrackingInfo(layer):

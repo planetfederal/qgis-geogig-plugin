@@ -7,7 +7,7 @@ from qgis.gui import *
 from geogig import config
 from geogig.gui.executor import execute
 from geogig.tools.exporter import loadRepoExportedLayers, exportFullRepo
-from geogig.tools.layertracking import removeTrackedForRepo, isTracked, \
+from geogig.tools.layertracking import removeTrackedForRepo, isRepoLayer, \
     updateTrackedLayers, getTrackedPathsForRepo
 from geogigpy import geogig
 from geogigpy.geogigexception import GeoGigException, GeoGigConflictException
@@ -21,7 +21,7 @@ from geogig.tools.layers import getVectorLayers
 from geogig.gui.dialogs.batchimportdialog import BatchImportDialog
 from geogig.gui.dialogs.syncdialog import SyncDialog
 from geogig.tools.repowrapper import *
-from geogig.layeractions import setAsTracked, repoWatcher, setAsUntracked
+from geogig.layeractions import setAsRepoLayer, repoWatcher, setAsNonRepoLayer
 import sys
 
 def icon(f):
@@ -244,7 +244,7 @@ class NavigatorDialog(BASE, WIDGET):
     def addLayer(self):
         layers = [layer for layer in getVectorLayers()
                         if layer.source().lower().endswith("shp")
-                        and not isTracked(layer)]
+                        and not isRepoLayer(layer)]
         if layers:
             dlg = ImportDialog(self, repo = self.currentRepo.repo())
             dlg.exec_()
@@ -252,7 +252,7 @@ class NavigatorDialog(BASE, WIDGET):
                 self.versionsTree.updateCurrentBranchItem()
                 self.statusWidget.updateLabelText()
                 self.updateCurrentRepoDescription()
-                setAsTracked(dlg.layer)
+                setAsRepoLayer(dlg.layer)
         else:
             QtGui.QMessageBox.warning(self, 'Cannot add layer',
                 "No suitable layers can be found in your current QGIS project.\n"
@@ -272,7 +272,7 @@ class NavigatorDialog(BASE, WIDGET):
         layers = getVectorLayers()
         for layer in layers:
             if layer.source() in tracked:
-                setAsUntracked(layer)
+                setAsNonRepoLayer(layer)
         removeTrackedForRepo(item.repo.path)
         killGateway()
         try:

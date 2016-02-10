@@ -27,7 +27,7 @@ from geogig.gui.executor import execute
 from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.tools.exporter import exportVectorLayer
-from layeractions import setAsTracked, setAsUntracked, removeLayerActions
+from layeractions import setAsRepoLayer, setAsNonRepoLayer, removeLayerActions, addSyncMenu
 from PyQt4 import QtGui, QtCore
 from geogig.gui.dialogs.navigatordialog import navigatorInstance
 
@@ -39,9 +39,17 @@ logger = logging.getLogger("geogigpy")
 
 trackers = {}
 
+def isGeoGigGeopackage(layer):
+    if not layer.source().split("|")[0].endswith(".gpkg"):
+        return False
+    return True
+    #TODO
+
 def trackLayer(layer):
     global trackers
-    if layer.type() == layer.VectorLayer and not layer.isReadOnly():
+    if isGeoGigGeopackage(layer):
+        addSyncMenu(layer)
+    elif layer.type() == layer.VectorLayer and not layer.isReadOnly():
         tracker = LayerTracker(layer)
         trackers[layer] = tracker
         layer.committedFeaturesAdded.connect(tracker._featuresAdded)
@@ -50,10 +58,10 @@ def trackLayer(layer):
 
         setIdEditWidget(layer)
 
-        if isTracked(layer):
-            setAsTracked(layer)
+        if isRepoLayer(layer):
+            setAsRepoLayer(layer)
         else:
-            setAsUntracked(layer)
+            setAsNonRepoLayer(layer)
 
 def layerRemoved(layer):
     global trackers

@@ -1,6 +1,6 @@
 import logging
 from geogigpy import geogig
-from layertracking import isTracked
+from layertracking import isRepoLayer
 from geogigpy.py4jconnector import Py4JConnectionException
 import uuid
 
@@ -20,7 +20,7 @@ class LayerTracker(object):
         self.newFeatures = []
 
     def featuresAdded(self, features):
-        if not isTracked(self.layer):
+        if not isRepoLayer(self.layer):
             return
         for feature in features:
             self.newFeatures.append(feature.id())
