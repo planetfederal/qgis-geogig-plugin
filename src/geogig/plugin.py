@@ -1,7 +1,6 @@
 import os
 import sys
 import inspect
-import sqlite3
 from geogig import config
 import traceback
 import logging
@@ -28,7 +27,7 @@ from geogig.gui.executor import execute
 from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
 from geogig.tools.exporter import exportVectorLayer
-from layeractions import setAsRepoLayer, setAsNonRepoLayer, removeLayerActions, addSyncMenu
+from layeractions import setAsTracked, setAsUntracked, removeLayerActions
 from PyQt4 import QtGui, QtCore
 from geogig.gui.dialogs.navigatordialog import navigatorInstance
 
@@ -40,22 +39,9 @@ logger = logging.getLogger("geogigpy")
 
 trackers = {}
 
-def isGeoGigGeopackage(layer):
-    filename = layer.source().split("|")[0]
-    if not filename.endswith(".geopkg"):
-        return False
-    con = sqlite3.connect(filename)
-    cursor = con.cursor()
-    cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-    tables = [t[0] for t in cursor.fetchall()]
-    return "geogig_audited_tables" in tables
-
-
 def trackLayer(layer):
     global trackers
-    if isGeoGigGeopackage(layer):
-        addSyncMenu(layer)
-    elif layer.type() == layer.VectorLayer and not layer.isReadOnly():
+    if layer.type() == layer.VectorLayer and not layer.isReadOnly():
         tracker = LayerTracker(layer)
         trackers[layer] = tracker
         layer.committedFeaturesAdded.connect(tracker._featuresAdded)
@@ -64,10 +50,10 @@ def trackLayer(layer):
 
         setIdEditWidget(layer)
 
-        if isRepoLayer(layer):
-            setAsRepoLayer(layer)
+        if isTracked(layer):
+            setAsTracked(layer)
         else:
-            setAsNonRepoLayer(layer)
+            setAsUntracked(layer)
 
 def layerRemoved(layer):
     global trackers

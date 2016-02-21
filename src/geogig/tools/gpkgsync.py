@@ -1,3 +1,0 @@
-def syncLayer(layer):
-    pass
-

@@ -23,7 +23,7 @@ class MapToolGeoGigInfo(QgsMapTool):
             config.iface.messageBar().pushMessage("No layer selected or the current active layer is not a valid vector layer",
                                                   level = QgsMessageBar.WARNING, duration = 4)
             return
-        if not layertracking.isRepoLayer(layer):
+        if not layertracking.isTracked(layer):
             config.iface.messageBar().pushMessage("The current active layer is not being tracked as part of a GeoGig repo",
                                                   level = QgsMessageBar.WARNING, duration = 4)
             return

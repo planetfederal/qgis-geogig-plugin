@@ -16,11 +16,10 @@ from geogig.gui.dialogs.historyviewer import HistoryViewerDialog
 from geogig.gui.executor import execute
 from geogig.tools.repowrapper import RepositoryWrapper, localRepos
 from geogig.gui.dialogs.commitdialog import CommitDialog
-from geogig.gui.dialogs.userconfigdialog import *
+from geogig.gui.dialogs.userconfigdialog import configureUser
 from geogig.tools.exporter import exportVectorLayer
 from PyQt4 import QtGui
 from PyQt4.QtCore import pyqtSignal, QObject
-from geogig.tools.gpkgsync import syncLayer
 
 class RepoWatcher(QObject):
 
@@ -28,7 +27,7 @@ class RepoWatcher(QObject):
 
 repoWatcher = RepoWatcher()
 
-def setAsRepoLayer(layer):
+def setAsTracked(layer):
     removeLayerActions(layer)
     removeAction = QtGui.QAction(u"Remove layer from repository", config.iface.legendInterface())
     config.iface.legendInterface().addLegendLayerAction(removeAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
@@ -40,7 +39,7 @@ def setAsRepoLayer(layer):
     commitAction.triggered.connect(lambda: commitLayer(layer))
     layer.geogigActions = [removeAction, commitAction]
 
-def setAsNonRepoLayer(layer):
+def setAsUntracked(layer):
     removeLayerActions(layer)
     action = QtGui.QAction(u"Add layer to Repository...", config.iface.legendInterface())
     config.iface.legendInterface().addLegendLayerAction(action, u"GeoGig", u"id2", QgsMapLayer.VectorLayer, False)
@@ -75,7 +74,7 @@ def addLayer(layer):
         if dlg.ok:
             config.iface.messageBar().pushMessage("Layer correctly added to repository",
                                               level = QgsMessageBar.INFO, duration = 4)
-            setAsRepoLayer(layer)
+            setAsTracked(layer)
             repoWatcher.repoChanged.emit(dlg.repo)
 
     else:
@@ -101,7 +100,7 @@ def removeLayer(layer):
     removeTrackedLayer(layer)
     config.iface.messageBar().pushMessage("Layer correctly removed from repository",
                                            level = QgsMessageBar.INFO, duration = 4)
-    setAsNonRepoLayer(layer)
+    setAsUntracked(layer)
     repoWatcher.repoChanged.emit(repo)
 
 def commitLayer(layer):
@@ -157,11 +156,3 @@ def commitLayer(layer):
     config.iface.messageBar().pushMessage("Repository correctly updated",
                                               level = QgsMessageBar.INFO, duration = 4)
     repoWatcher.repoChanged.emit(repo)
-
-def addSyncMenu(layer):
-    syncAction = QtGui.QAction(u"Sync with repository", config.iface.legendInterface())
-    config.iface.legendInterface().addLegendLayerAction(syncAction, u"GeoGig", u"id1", QgsMapLayer.VectorLayer, False)
-    config.iface.legendInterface().addLegendLayerActionForLayer(syncAction, layer)
-    syncAction.triggered.connect(lambda: syncLayer(layer))
-    layer.geogigActions = [syncAction]
-

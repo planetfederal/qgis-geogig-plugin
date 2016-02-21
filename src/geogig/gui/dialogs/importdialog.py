@@ -7,7 +7,7 @@ from geogigpy.geogigexception import GeoGigException, UnconfiguredUserException
 from geogigpy import geogig
 from geogig.gui.dialogs.userconfigdialog import configureUser
 from geogig.tools.exporter import exportVectorLayer
-from geogig.tools.layertracking import addTrackedLayer, isRepoLayer
+from geogig.tools.layertracking import addTrackedLayer, isTracked
 from geogig.gui.dialogs.addgeogigiddialog import AddGeogigIdDialog
 from geogig.tools.utils import *
 from geogigpy.repo import Repository
@@ -41,7 +41,7 @@ class ImportDialog(QtGui.QDialog):
             self.layerCombo = QtGui.QComboBox()
             layerNames = [layer.name() for layer in getVectorLayers()
                           if layer.source().lower().endswith("shp")
-                          and not isRepoLayer(layer)]
+                          and not isTracked(layer)]
             self.layerCombo.addItems(layerNames)
             verticalLayout.addWidget(self.layerCombo)
 
