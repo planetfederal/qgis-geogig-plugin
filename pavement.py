@@ -18,9 +18,9 @@ import zipfile
 options(
     plugin = Bunch(
         name = 'geogig',
-        ext_libs = path('src/geogig/ext-libs'),
-        ext_src = path('src/geogig/ext-src'),
-        source_dir = path('src/geogig'),
+        ext_libs = path('geogig/ext-libs'),
+        ext_src = path('geogig/ext-src'),
+        source_dir = path('geogig'),
         package_dir = path('.'),
         excludes = [
             'metadata.*',
@@ -28,7 +28,7 @@ options(
             'ext-src',
             'test',
             'coverage*.*',
-            'nose*.*',            
+            'nose*.*',
             '*.pyc'
         ]
     ),
@@ -70,7 +70,7 @@ def setup(options):
             localpath = ext_src / req
             if os.path.exists(localpath):
                 cwd = os.getcwd()
-                os.chdir(localpath)        
+                os.chdir(localpath)
                 sh("git pull")
                 os.chdir(cwd)
             else:
@@ -99,10 +99,10 @@ def read_requirements():
 def install(options):
     '''install plugin to qgis'''
     plugin_name = options.plugin.name
-    src = path(__file__).dirname() / 'src' / plugin_name
+    src = path(__file__).dirname() / plugin_name
     dst = path('~').expanduser() / '.qgis2' / 'python' / 'plugins' / plugin_name
     src = src.abspath()
-    dst = dst.abspath()       
+    dst = dst.abspath()
     if not hasattr(os, 'symlink'):
         dst.rmtree()
         src.copytree(dst)
@@ -130,7 +130,7 @@ def make_zip(zip, options):
     ref_file = path(".git/" + head_ref)
     ref = ref_file.open('rU').readline().strip()
     cfg.set("general", "version", "%s-%s-%s" % (base_version, datetime.now().strftime("%Y%m%d"), ref))
-    
+
     buf = StringIO()
     cfg.write(buf)
     zip.writestr("geogig/metadata.txt", buf.getvalue())
@@ -151,7 +151,7 @@ def make_zip(zip, options):
 
     for root, dirs, files in os.walk(src_dir):
         for f in filter_excludes(files):
-            relpath = os.path.relpath(root, 'src')
+            relpath = os.path.relpath(root)
             zip.write(path(root) / f, path(relpath) / f)
         filter_excludes(dirs)
 
@@ -196,5 +196,3 @@ def upload(options):
         error("%s : %s", err.errcode, err.errmsg)
         if err.errcode == 403:
             error("Invalid name and password?")
-
-    

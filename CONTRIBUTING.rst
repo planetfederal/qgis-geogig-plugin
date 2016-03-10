@@ -11,7 +11,7 @@ Pull requests are welcome,:
 * For changes over one file in size we ask that you add your details (or your employer details) in the file ``__copyright__``).
 
 We trust you (and your employer) understand the `GPL License <LICENSE.txt>`_ used by this plugin and QGIS. This is why we asks you note your copyright details above.
- 
+
 The complete list of `contributors <https://github.com/boundlessgeo/qgis-geogig-plugin/network/members>`_ is available on github.
 
 Committers
@@ -20,7 +20,7 @@ Committers
 The project committers:
 
 * `Larry Shaffer <https://github.com/dakcarto>`_ (Boundless)
-* `Alexandre Bruy <https://github.com/alexbruy>`_ (Boundless)
+* `Alexander Bruy <https://github.com/alexbruy>`_ (Boundless)
 * `Luigi Pirelli <https://github.com/luipir>`_ (Boundless)
 
 This is a small project that communicates via pull request.
