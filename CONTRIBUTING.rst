@@ -20,6 +20,7 @@ Committers
 The project committers:
 
 * `Larry Shaffer <https://github.com/dakcarto>`_ (Boundless)
+* `Victor Olaya <https://github.com/volaya>`_ (Boundless)
 * `Alexander Bruy <https://github.com/alexbruy>`_ (Boundless)
 * `Luigi Pirelli <https://github.com/luipir>`_ (Boundless)
 
