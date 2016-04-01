@@ -105,7 +105,7 @@ class GeoGigPlugin:
                 trackLayer(layer)
         try:
             from qgistester.tests import addTestModule
-            from geogig.test import testplugin
+            from geogig.tests import testplugin
             addTestModule(testplugin, "GeoGig")
         except:
             pass
