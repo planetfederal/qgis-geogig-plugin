@@ -3,7 +3,10 @@
 # (c) 2016 Boundless, http://boundlessgeo.com
 # This code is licensed under the GPL 2.0 license.
 #
+
+from PyQt4 import QtCore
 from PyQt4 import QtGui
+
 
 
 class CreateBranchDialog(QtGui.QDialog):
@@ -28,6 +31,9 @@ class CreateBranchDialog(QtGui.QDialog):
         horizontalLayout.setMargin(0)
         nameLabel = QtGui.QLabel('Branch name')
         self.nameBox = QtGui.QLineEdit()
+        self.rx = QtCore.QRegExp('^[A-Za-z][A-Za-z0-9\\-\\_]*$')
+        self.validator = QtGui.QRegExpValidator(self.rx)
+        self.nameBox.setValidator(self.validator)
         horizontalLayout.addWidget(nameLabel)
         horizontalLayout.addWidget(self.nameBox)
 
