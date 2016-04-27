@@ -244,6 +244,13 @@ class HistoryViewer(QtGui.QTreeWidget):
                 item.updateForCurrentBranch(ref)
 
     def deleteBranch(self, branch):
+        ret = QtGui.QMessageBox.question(self, 'Delete Branch',
+                    'Are you sure you want to delete this branch?',
+                    QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                    QtGui.QMessageBox.No)
+        if ret == QtGui.QMessageBox.No:
+            return
+
         self.repo.deletebranch(branch)
         for i in xrange(self.topLevelItemCount()):
             item = self.topLevelItem(i)
