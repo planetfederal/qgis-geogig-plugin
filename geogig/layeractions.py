@@ -123,8 +123,8 @@ def commitLayer(layer):
                                                   level = QgsMessageBar.WARNING, duration = 4)
         return
 
-    exported = exportVectorLayer(layer)
-    repo.importshp(exported, False, trackedLayer.layername, "geogigid", True)
+    exported, charset = exportVectorLayer(layer)
+    repo.importshp(exported, False, trackedLayer.layername, "geogigid", True, charset)
 
     unstaged = repo.difftreestats(geogig.HEAD, geogig.WORK_HEAD)
     total = 0

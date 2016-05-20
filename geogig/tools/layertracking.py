@@ -133,7 +133,7 @@ def updateTrackedLayers(repo):
             if trackedlayer.layername in repoLayers:
                 if (trackedlayer.ref != head
                             or not os.path.exists(trackedlayer.source)):
-                    repo.exportshp(geogig.HEAD, trackedlayer.layername, trackedlayer.source)
+                    repo.exportshp(geogig.HEAD, trackedlayer.layername, trackedlayer.source, 'utf-8')
                     try:
                         layer = resolveLayerFromSource(trackedlayer.source)
                         layer.reload()

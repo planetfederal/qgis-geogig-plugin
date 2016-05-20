@@ -8,6 +8,7 @@ from qgis.gui import *
 from PyQt4 import QtGui, QtCore
 from geogig.tools.layers import *
 import os
+import locale
 from geogigpy.geogigexception import GeoGigException, UnconfiguredUserException
 from geogigpy import geogig
 from geogig.gui.dialogs.userconfigdialog import configureUser
@@ -108,7 +109,20 @@ class ImportDialog(QtGui.QDialog):
                             QtGui.QMessageBox.Ok, QtGui.QMessageBox.Ok)
                 return
 
-        self.repo.importshp(source, False, self.layer.name(), "geogigid", True)
+        # determine encoding
+        # first look in .cpg file
+        cpgPath = source.replace('.shp', '.cpg')
+        if os.path.exists(cpgPath):
+            with open(cpgPath) as f:
+                charset = f.readline().strip('\r\n')
+        else:
+            # try to get encoding from provider
+            charset = self.layer.dataProvider().encoding()
+            if charset.lower() == 'system':
+                # get encoding from system
+                charset = locale.getpreferredencoding()
+
+        self.repo.importshp(source, False, self.layer.name(), "geogigid", True, charset)
         message = self.messageBox.toPlainText()
         self.repo.add()
         try:

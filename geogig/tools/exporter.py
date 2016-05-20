@@ -29,20 +29,32 @@ _logger = logging.getLogger("geogigpy")
 def exportVectorLayer(layer):
     '''accepts a QgsVectorLayer'''
     settings = QtCore.QSettings()
-    systemEncoding = settings.value("/UI/encoding", "System")
     filename = unicode(layer.source())
     destFilename = unicode(layer.name())
     if not filename.lower().endswith("shp"):
         output = utils.tempFilenameInTempFolder(destFilename + ".shp")
         provider = layer.dataProvider()
         fields = layer.pendingFields()
-        writer = QgsVectorFileWriter(output, systemEncoding, fields, provider.geometryType(), layer.crs())
+        writer = QgsVectorFileWriter(output, "utf-8", fields, provider.geometryType(), layer.crs())
         for feat in layer.getFeatures():
             writer.addFeature(feat)
         del writer
-        return output
+        return output, "utf-8"
     else:
-        return filename
+        # determine encoding
+        # first look in .cpg file
+        cpgPath = filename.replace('.shp', '.cpg')
+        if os.path.exists(cpgPath):
+            with open(cpgPath) as f:
+                charset = f.readline().strip('\r\n')
+        else:
+            # try to get encoding from provider
+            charset = self.layer.dataProvider().encoding()
+            if charset.lower() == 'system':
+                # get encoding from system
+                charset = locale.getpreferredencoding()
+
+        return filename, charset
 
 def exportFullRepo(repo, ref = geogig.HEAD):
     trees = repo.trees
@@ -51,10 +63,10 @@ def exportFullRepo(repo, ref = geogig.HEAD):
         trackedlayer = getTrackingInfoForGeogigLayer(repo.url, tree.path)
         if trackedlayer is None or not os.path.exists(trackedlayer.source):
             filepath = os.path.join(repo.url, tree.path + ".shp")
-            repo.exportshp(ref, tree.path, filepath)
+            repo.exportshp(ref, tree.path, filepath, "utf-8")
             addTrackedLayer(filepath, repo.url, tree.path, ref)
         elif trackedlayer.ref != ref:
-            repo.exportshp(ref, tree.path, trackedlayer.source)
+            repo.exportshp(ref, tree.path, trackedlayer.source, "utf-8")
             setRef(trackedlayer.source, ref)
 
 def exportAndLoadVersion(commit):
@@ -63,7 +75,7 @@ def exportAndLoadVersion(commit):
     for tree in trees:
         filepath = os.path.join(tempFolder(), "%s_%s.shp" % (tree.path, commit.commitid))
         if not os.path.exists(filepath):
-            commit.repo.exportshp(commit.commitid, tree.path, filepath)
+            commit.repo.exportshp(commit.commitid, tree.path, filepath, "utf-8")
         layer = loadLayerNoCrsDialog(filepath, tree.path + "_[%s]" % commit.commitid[:8], "ogr")
         layer.setReadOnly(True)
         layers.append(layer)
@@ -91,7 +103,7 @@ def exportVersionDiffs(commita, commitb = None):
         filepath = os.path.join(tempFolder(), "diff_%s_%s_before.shp" % (layername, name))
         try:
             if not os.path.exists(filepath):
-                commita.repo.exportdiffs(commita, commitb, layername, filepath, True, True)
+                commita.repo.exportdiffs(commita, commitb, layername, filepath, True, True, "utf-8")
             beforeLayer = loadLayerNoCrsDialog(filepath, layername + "_[%s][before]" % name, "ogr")
             beforeLayer.setReadOnly(True)
             vectorType = beforeLayer.geometryType()
@@ -103,7 +115,7 @@ def exportVersionDiffs(commita, commitb = None):
         try:
             filepath = os.path.join(tempFolder(), "diff_%s_%s_after.shp" % (layername, name))
             if not os.path.exists(filepath):
-                commitb.repo.exportdiffs(commita, commitb, layername, filepath, False, True)
+                commitb.repo.exportdiffs(commita, commitb, layername, filepath, False, True, "utf-8")
             afterLayer = loadLayerNoCrsDialog(filepath, layername + "_[%s][after]" % name, "ogr")
             afterLayer.setReadOnly(True)
             vectorType = afterLayer.geometryType()
@@ -134,7 +146,6 @@ def loadRepoExportedLayers(repo):
 def exportVectorLayerAddingId(layer, fid):
     '''accepts a QgsVectorLayer'''
     settings = QtCore.QSettings()
-    systemEncoding = settings.value("/UI/encoding", "System")
     destFilename = unicode(layer.name())
     output = utils.tempFilenameInTempFolder(destFilename + ".shp")
     provider = layer.dataProvider()
@@ -148,7 +159,7 @@ def exportVectorLayerAddingId(layer, fid):
             raise Exception("Field %s not found in layer" % name)
         fidattrs[field] = idx
     fields.append(QgsField("geogigid", QtCore.QVariant.String))
-    writer = QgsVectorFileWriter(output, systemEncoding, fields, provider.geometryType(), layer.crs())
+    writer = QgsVectorFileWriter(output, "utf-8", fields, provider.geometryType(), layer.crs())
     outFeat = QgsFeature()
     for feat in layer.getFeatures():
         inGeom = feat.geometry()
@@ -165,6 +176,4 @@ def exportVectorLayerAddingId(layer, fid):
         writer.addFeature(outFeat)
         writer.addFeature(feat)
     del writer
-    return output
-
-
+    return output, "utf-8"

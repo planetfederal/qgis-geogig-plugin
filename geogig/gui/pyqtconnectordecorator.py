@@ -81,7 +81,6 @@ class PyQtConnectorDecorator(Py4JCLIConnector):
         self._showProgress = show
 
     def run(self, commands):
-
         try:
             self.checkCleanTree(commands)
             return self.runDecorated(lambda: Py4JCLIConnector.run(self, commands), self._getProgressMessage(commands))

@@ -309,7 +309,7 @@ class BranchTreeItem(QtGui.QTreeWidgetItem):
             try:
                 commits = self.repo.log(tip = self.branch, path = self.treeWidget().filterLayers)
             except GeoGigException, e:
-                if "master does not resolve" in str(e):
+                if "master does not resolve" in unicode(e):
                     return
                 else:
                     raise e

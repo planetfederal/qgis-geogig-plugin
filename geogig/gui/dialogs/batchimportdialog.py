@@ -75,8 +75,8 @@ class BatchImportDialog(QtGui.QDialog):
                 for i, layer in enumerate(layers):
                     item = self.ui.layersList.item(i)
                     path = layer.source()
-                    exported = exportVectorLayerAddingId(layer, fid)
-                    self.repo.importshp(exported, False, dest, self.GEOGIGID, True)
+                    exported, charset = exportVectorLayerAddingId(layer, fid)
+                    self.repo.importshp(exported, False, dest, self.GEOGIGID, True, charset)
                     message = pattern.replace("%f", os.path.basename(path)).replace("%d", dest)
                     self.repo.add()
                     self.repo.commit(message)
