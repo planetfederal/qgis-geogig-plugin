@@ -13,11 +13,11 @@ if sys.platform == 'darwin':
     jre_path = os.path.join(bin_path,'jre','osx','bin')
     gg_path = os.path.join(bin_path,'geogig','bin')
 
-    if os.path.isdir(gg_path)
+    if os.path.isdir(gg_path):
         for bin in os.listdir(gg_path):
             os.chmod(os.path.join(gg_path,bin), 0744)
 
-    if os.path.isdir(jre_path)
+    if os.path.isdir(jre_path):
         for bin in os.listdir(jre_path):
             os.chmod(os.path.join(jre_path,bin), 0744)
 
