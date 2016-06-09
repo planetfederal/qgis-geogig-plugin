@@ -1,3 +1,6 @@
+.. image:: https://travis-ci.org/boundlessgeo/qgis-geogig-plugin.svg?branch=master
+    :target: https://travis-ci.org/boundlessgeo/qgis-geogig-plugin
+
 GeoGig QGIS Plugin
 ==============================
 
