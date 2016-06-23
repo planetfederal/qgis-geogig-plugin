@@ -107,7 +107,7 @@ class GeoGigPlugin:
             from qgistester.tests import addTestModule
             from geogig.tests import testplugin
             addTestModule(testplugin, "GeoGig")
-        except:
+        except Exception as e:
             pass
 
     def unload(self):
@@ -123,6 +123,13 @@ class GeoGigPlugin:
         killGateway()
         removeNonexistentTrackedLayers()
         deleteTempFolder()
+
+        try:
+            from qgistester.tests import removeTestModule
+            from geogig.tests import testplugin
+            removeTestModule(testplugin, "GeoGig")
+        except Exception as e:
+            pass
 
     def initGui(self):
         readTrackedLayers()
