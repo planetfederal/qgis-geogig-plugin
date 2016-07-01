@@ -136,7 +136,8 @@ def updateTrackedLayers(repo):
                     repo.exportshp(geogig.HEAD, trackedlayer.layername, trackedlayer.source, 'utf-8')
                     try:
                         layer = resolveLayerFromSource(trackedlayer.source)
-                        layer.reload()
+                        layer.dataProvider().forceReload()
+                        layer.setCacheImage(None)
                         layer.triggerRepaint()
                         repoLayersInProject = True
                     except WrongLayerSourceException:

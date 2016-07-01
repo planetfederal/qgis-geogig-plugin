@@ -133,7 +133,8 @@ def loadRepoExportedLayers(repo):
     for f in paths:
         try:
             layer = resolveLayerFromSource(f)
-            layer.reload()
+            layer.dataProvider().forceReload()
+            layer.setCacheImage(None)
             layer.triggerRepaint()
         except WrongLayerSourceException:
             layername = os.path.splitext(os.path.basename(f))[0]
