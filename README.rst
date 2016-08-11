@@ -1,8 +1,8 @@
 .. image:: https://travis-ci.org/boundlessgeo/qgis-geogig-plugin.svg?branch=master
     :target: https://travis-ci.org/boundlessgeo/qgis-geogig-plugin
 
-GeoGig QGIS Plugin
-==============================
+GeoGig QGIS Plugin (OLD)
+========================
 
 This is a QGIS plugin to work with GeoGig repositories
 
