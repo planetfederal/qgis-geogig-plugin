@@ -6,6 +6,8 @@ GeoGig QGIS Plugin (OLD)
 
 This is a QGIS plugin to work with GeoGig repositories
 
+WARNING: **This plugin have been deprecated**. Please use `qgis-geogiglight-plugin <https://github.com/boundlessgeo/qgis-geogiglight-plugin>`_ instead.
+
 Installation
 *************
 
